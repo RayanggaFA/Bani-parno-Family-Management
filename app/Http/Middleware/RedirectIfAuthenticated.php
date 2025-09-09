@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Middleware;
 
 use App\Providers\RouteServiceProvider;
@@ -12,8 +11,6 @@ class RedirectIfAuthenticated
 {
     /**
      * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle(Request $request, Closure $next, string ...$guards): Response
     {
@@ -21,6 +18,12 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
+                // TAMBAHKAN HANDLING UNTUK FAMILY GUARD
+                if ($guard === 'family') {
+                    $family = Auth::guard('family')->user();
+                    return redirect()->route('families.show', $family);
+                }
+                
                 return redirect(RouteServiceProvider::HOME);
             }
         }

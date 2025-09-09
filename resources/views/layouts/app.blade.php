@@ -65,8 +65,6 @@
     <i class="fas fa-user-plus mr-1"></i> Daftar
 </a>
 
-
-
                 <!-- Mobile menu button -->
                 <div class="md:hidden">
                     <button id="mobile-menu-button" class="text-gray-500 hover:text-orange-500">

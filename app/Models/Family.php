@@ -1,10 +1,8 @@
 <?php
-// app/Models/Family.php - UPDATE EXISTING FILE
 
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -14,7 +12,7 @@ class Family extends Authenticatable
 
     protected $fillable = [
         'name',
-        'username',
+        'username', 
         'password',
         'domicile',
         'description',
@@ -27,6 +25,8 @@ class Family extends Authenticatable
 
     protected $casts = [
         'password' => 'hashed',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     // Relationships
@@ -40,45 +40,70 @@ class Family extends Authenticatable
         return $this->hasMany(ActivityLog::class);
     }
 
+    // Custom authentication - use username instead of email
+    public function getAuthIdentifierName()
+    {
+        return 'username';
+    }
+
+    // ADMIN ROLE METHODS
+    /**
+     * Check if this family can manage another family (only themselves)
+     */
+    public function canManageFamily(Family $targetFamily): bool
+    {
+        return $this->id === $targetFamily->id;
+    }
+
+    /**
+     * Check if this family can manage a member (only their own members)
+     */
+    public function canManageMember(Member $member): bool
+    {
+        return $this->id === $member->family_id;
+    }
+
+    /**
+     * Check if this family is admin of themselves (always true)
+     */
+    public function isAdminOf(Family $family): bool
+    {
+        return $this->id === $family->id;
+    }
+
+    /**
+     * Get family statistics for dashboard
+     */
+    public function getStatistics(): array
+    {
+        return [
+            'total_members' => $this->members()->count(),
+            'male_members' => $this->members()->where('gender', 'male')->count(),
+            'female_members' => $this->members()->where('gender', 'female')->count(),
+            'married_members' => $this->members()->where('marital_status', 'married')->count(),
+            'recent_activities' => $this->activityLogs()->latest()->limit(10)->get(),
+        ];
+    }
+
     // Helper methods
     public function getMemberCountAttribute()
     {
         return $this->members()->count();
     }
 
-    public function getLatestActivityAttribute()
+    /**
+     * Get admin name (same as family name)
+     */
+    public function getAdminNameAttribute()
     {
-        return $this->activityLogs()->latest()->first();
+        return $this->name;
     }
 
-    // Authentication methods
-    public function getAuthIdentifierName()
+    /**
+     * Scope for filtering families by admin access
+     */
+    public function scopeAdministeredBy($query, Family $admin)
     {
-        return 'id';
-    }
-
-    public function getAuthIdentifier()
-    {
-        return $this->getKey();
-    }
-
-    public function getAuthPassword()
-    {
-        return $this->password;
-    }
-
-    public function getRememberToken()
-    {
-        return $this->remember_token;
-    }
-
-    public function setRememberToken($value)
-    {
-        $this->remember_token = $value;
-    }
-
-    public function getRememberTokenName()
-    {
-        return 'remember_token';
+        return $query->where('id', $admin->id);
     }
 }

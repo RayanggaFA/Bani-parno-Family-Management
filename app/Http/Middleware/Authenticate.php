@@ -12,6 +12,17 @@ class Authenticate extends Middleware
      */
     protected function redirectTo(Request $request): ?string
     {
-        return $request->expectsJson() ? null : route('login');
+        // HANDLE FAMILY GUARD AUTHENTICATION
+        if (!$request->expectsJson()) {
+            // Check if route expects family authentication
+            if ($request->route() && str_contains($request->route()->getName(), 'families.') || 
+                str_contains($request->route()->getName(), 'members.')) {
+                return route('auth.login');
+            }
+            
+            return route('auth.login');
+        }
+        
+        return null;
     }
 }
