@@ -30,7 +30,7 @@ class FamilyFormController extends Controller
         // Redirect jika sudah login
         if (Auth::guard('family')->check()) {
             $family = Auth::guard('family')->user();
-            return redirect()->route('families.show', $family);
+            return redirect()->route('families.detail', $family);
         }
         
         $validator = Validator::make($request->all(), [

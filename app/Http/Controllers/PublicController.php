@@ -6,17 +6,30 @@ use App\Models\Family;
 use App\Models\Member;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 
 class PublicController extends Controller
 {
     public function index()
     {
         $totalFamilies = Family::count();
-        $totalMembers = Member::count();
-        $recentMembers = Member::with('family')
-            ->latest()
-            ->limit(6)
-            ->get();
+        
+        // Safe member count check
+        $totalMembers = 0;
+        $recentMembers = collect([]);
+        
+        try {
+            if (Schema::hasTable('members')) {
+                $totalMembers = Member::count();
+                $recentMembers = Member::with('family')
+                    ->latest()
+                    ->limit(6)
+                    ->get();
+            }
+        } catch (\Exception $e) {
+            \Log::warning('Error loading members: ' . $e->getMessage());
+        }
         
         return view('public.home', compact('totalFamilies', 'totalMembers', 'recentMembers'));
     }
@@ -37,164 +50,311 @@ class PublicController extends Controller
 
     public function family(Family $family)
     {
-        $family->load(['members' => function($query) {
-            $query->orderBy('generation')->orderBy('full_name');
-        }]);
+        // Check if user is admin
+        $isAdmin = Auth::guard('family')->check() && Auth::guard('family')->id() === $family->id;
         
-        // Group members by generation
-        $membersByGeneration = $family->members->groupBy('generation');
+        // Get statistics with proper database columns
+        $stats = $this->getFamilyStatistics($family);
         
-        // Statistics
-        $stats = [
-            'total' => $family->members->count(),
-            'male' => $family->members->where('gender', 'Laki-laki')->count(),
-            'female' => $family->members->where('gender', 'Perempuan')->count(),
-            'married' => $family->members->where('status', 'Sudah Menikah')->count(),
-        ];
+        // Get members with proper relations
+        $allMembers = collect([]);
+        $rootMembers = collect([]);
         
-        return view('public.family-detail', compact('family', 'membersByGeneration', 'stats'));
+        try {
+            if (Schema::hasTable('members')) {
+                // Load members with parent and children relations
+                $family->load(['members.parent', 'members.children']);
+                $allMembers = $family->members;
+                $rootMembers = $family->members->where('parent_id', null);
+            }
+        } catch (\Exception $e) {
+            \Log::warning('Error loading family members: ' . $e->getMessage());
+        }
+        
+        // FIXED: Use existing view
+        return view('public.family-detail', compact('family', 'isAdmin', 'stats', 'allMembers', 'rootMembers'));
     }
 
     public function members(Request $request)
-{
-    $query = Member::with('family');
-    
-    // Filters
-    if ($request->filled('family_id')) {
-        $query->where('family_id', $request->family_id);
-    }
-    
-    if ($request->filled('gender')) {
-        $query->where('gender', $request->gender);
-    }
-    
-    if ($request->filled('generation')) {
-        $query->where('generation', $request->generation);
-    }
-    
-    if ($request->filled('status')) {
-        $query->where('status', $request->status);
-    }
-    
-    if ($request->filled('city')) {
-        $query->where('domicile_city', 'like', '%' . $request->city . '%');
-    }
-    
-    if ($request->filled('search')) {
-        $query->where(function($q) use ($request) {
-            $q->where('full_name', 'like', '%' . $request->search . '%')
-              ->orWhere('occupation', 'like', '%' . $request->search . '%')
-              ->orWhere('birth_place', 'like', '%' . $request->search . '%');
-        });
-    }
+    {
+        try {
+            if (!Schema::hasTable('members')) {
+                $members = collect([])->paginate(20);
+                $families = Family::orderBy('name')->pluck('name', 'id');
+                $cities = collect([]);
+                return view('public.members', compact('members', 'families', 'cities'));
+            }
 
-    // Sorting
-    $sortBy = $request->get('sort', 'full_name');
-    $sortDirection = $request->get('direction', 'asc');
-    $query->orderBy($sortBy, $sortDirection);
+            $query = Member::with('family');
+            
+            // Filters with correct database columns
+            if ($request->filled('family_id')) {
+                $query->where('family_id', $request->family_id);
+            }
+            
+            if ($request->filled('gender')) {
+                $query->where('gender', $request->gender);
+            }
+            
+            if ($request->filled('marital_status')) {
+                $query->where('marital_status', $request->marital_status);
+            }
+            
+            if ($request->filled('search')) {
+                $query->where(function($q) use ($request) {
+                    $q->where('name', 'like', '%' . $request->search . '%')
+                      ->orWhere('occupation', 'like', '%' . $request->search . '%')
+                      ->orWhere('birth_place', 'like', '%' . $request->search . '%');
+                });
+            }
 
-    $members = $query->paginate(20)->appends($request->all());
-    
-    // Data untuk filters
-    $families = Family::orderBy('name')->pluck('name', 'id');
-    $cities = Member::select('domicile_city')->distinct()->orderBy('domicile_city')->pluck('domicile_city');
-    
-    // Return table view instead of card view
-    return view('public.members', compact('members', 'families', 'cities'));
-}
+            // Sorting with correct column names
+            $sortBy = $request->get('sort', 'name');
+            $sortDirection = $request->get('direction', 'asc');
+            
+            $allowedSorts = ['name', 'birth_date', 'gender', 'marital_status', 'occupation'];
+            if (!in_array($sortBy, $allowedSorts)) {
+                $sortBy = 'name';
+            }
+            
+            $query->orderBy($sortBy, $sortDirection);
 
+            $members = $query->paginate(20)->appends($request->all());
+            
+            // Data untuk filters
+            $families = Family::orderBy('name')->pluck('name', 'id');
+            
+            $cities = Member::whereNotNull('address')
+                          ->pluck('address')
+                          ->map(function($address) {
+                              return trim(explode(',', $address)[0] ?? '');
+                          })
+                          ->filter()
+                          ->unique()
+                          ->sort()
+                          ->values();
+            
+        } catch (\Exception $e) {
+            \Log::warning('Error loading members: ' . $e->getMessage());
+            $members = collect([])->paginate(20);
+            $families = Family::orderBy('name')->pluck('name', 'id');
+            $cities = collect([]);
+        }
+        
+        return view('public.members', compact('members', 'families', 'cities'));
+    }
 
     public function member(Member $member)
     {
-        $member->load(['family', 'parent', 'children']);
-        
-        // Find siblings (same parent or no parent but same generation)
-        $siblings = collect();
-        if ($member->parent_id) {
-            $siblings = Member::where('parent_id', $member->parent_id)
-                            ->where('id', '!=', $member->id)
-                            ->get();
+        try {
+            $member->load(['family', 'parent', 'children']);
+            
+            // Find siblings
+            $siblings = collect();
+            if ($member->parent_id) {
+                $siblings = Member::where('parent_id', $member->parent_id)
+                                ->where('id', '!=', $member->id)
+                                ->get();
+            } else {
+                $siblings = Member::where('family_id', $member->family_id)
+                                ->whereNull('parent_id')
+                                ->where('id', '!=', $member->id)
+                                ->get();
+            }
+        } catch (\Exception $e) {
+            \Log::warning('Error loading member details: ' . $e->getMessage());
+            $siblings = collect();
         }
         
         return view('public.member-detail', compact('member', 'siblings'));
     }
 
     public function show($id)
-{
-    $family = Family::with('members')->findOrFail($id);
-    return view('public.family-detail', compact('family'));
-}
-
+    {
+        $family = Family::with('members')->findOrFail($id);
+        // Use same logic as family() method
+        $isAdmin = Auth::guard('family')->check() && Auth::guard('family')->id() === $family->id;
+        $stats = $this->getFamilyStatistics($family);
+        $allMembers = $family->members ?? collect([]);
+        $rootMembers = $family->members->where('parent_id', null) ?? collect([]);
+        
+        return view('public.family-detail', compact('family', 'isAdmin', 'stats', 'allMembers', 'rootMembers'));
+    }
 
     public function familyTree(Family $family)
     {
-        // Get family tree structure
-        $generations = Member::where('family_id', $family->id)
-                            ->orderBy('generation')
-                            ->orderBy('full_name')
-                            ->get()
-                            ->groupBy('generation');
+        try {
+            if (Schema::hasTable('members')) {
+                $family->load(['members.parent', 'members.children']);
+                
+                // Simple generation grouping
+                $generations = collect();
+                $family->members->each(function($member) use (&$generations) {
+                    $level = $this->getMemberLevel($member);
+                    if (!$generations->has($level)) {
+                        $generations->put($level, collect());
+                    }
+                    $generations->get($level)->push($member);
+                });
+            } else {
+                $generations = collect();
+            }
+        } catch (\Exception $e) {
+            \Log::warning('Error loading family tree: ' . $e->getMessage());
+            $generations = collect();
+        }
         
         return view('public.family-tree', compact('family', 'generations'));
     }
 
-        public function activityHistory(Request $request)
+    public function activityHistory(Request $request)
     {
-        $query = ActivityLog::query();
+        try {
+            if (!Schema::hasTable('activity_logs')) {
+                $logs = collect([])->paginate(10);
+                $sort = $request->get('sort', 'desc');
+                return view('public.activity_logs', compact('logs', 'sort'));
+            }
 
-        // Filter berdasarkan tipe
-        if ($request->filled('type')) {
-            $query->where('subject_type', $request->type);
+            $query = ActivityLog::with('family');
+
+            if ($request->filled('type')) {
+                $query->where('subject_type', $request->type);
+            }
+
+            if ($request->filled('family_id')) {
+                $query->where('family_id', $request->family_id);
+            }
+
+            $sort = $request->get('sort', 'desc');
+            $query->orderBy('created_at', $sort);
+
+            $logs = $query->paginate(10);
+            
+        } catch (\Exception $e) {
+            \Log::warning('Error loading activity history: ' . $e->getMessage());
+            $logs = collect([])->paginate(10);
+            $sort = $request->get('sort', 'desc');
         }
-
-        // Sorting
-        $sort = $request->get('sort', 'desc');
-        $query->orderBy('created_at', $sort);
-
-        $logs = $query->paginate(10);
 
         return view('public.activity_logs', compact('logs', 'sort'));
     }
-
     
     public function statistics()
     {
-        $stats = [
-            'families' => [
-                'total' => Family::count(),
-                'by_city' => Family::selectRaw('domicile, COUNT(*) as count')
-                                  ->groupBy('domicile')
-                                  ->orderBy('count', 'desc')
-                                  ->get()
-            ],
-            'members' => [
-                'total' => Member::count(),
-                'by_gender' => Member::selectRaw('gender, COUNT(*) as count')
-                                    ->groupBy('gender')
-                                    ->get(),
-                'by_generation' => Member::selectRaw('generation, COUNT(*) as count')
-                                        ->groupBy('generation')
-                                        ->orderBy('generation')
+        try {
+            $stats = [
+                'families' => [
+                    'total' => Family::count(),
+                    'by_city' => Family::selectRaw('domicile, COUNT(*) as count')
+                                      ->groupBy('domicile')
+                                      ->orderBy('count', 'desc')
+                                      ->get()
+                ]
+            ];
+
+            if (Schema::hasTable('members')) {
+                $stats['members'] = [
+                    'total' => Member::count(),
+                    'by_gender' => Member::selectRaw('gender, COUNT(*) as count')
+                                        ->groupBy('gender')
                                         ->get(),
-                'by_status' => Member::selectRaw('status, COUNT(*) as count')
-                                    ->groupBy('status')
-                                    ->get(),
-                'by_age_group' => Member::selectRaw('
+                    'by_status' => Member::selectRaw('marital_status, COUNT(*) as count')
+                                        ->groupBy('marital_status')
+                                        ->get(),
+                ];
+
+                $stats['members']['by_age_group'] = Member::selectRaw('
                     CASE 
-                        WHEN YEAR(CURDATE()) - YEAR(birth_date) < 18 THEN "Anak-anak"
-                        WHEN YEAR(CURDATE()) - YEAR(birth_date) < 30 THEN "Remaja/Dewasa Muda"
-                        WHEN YEAR(CURDATE()) - YEAR(birth_date) < 50 THEN "Dewasa"
-                        WHEN YEAR(CURDATE()) - YEAR(birth_date) < 65 THEN "Paruh Baya"
+                        WHEN birth_date IS NULL THEN "Tidak Diketahui"
+                        WHEN TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) < 18 THEN "Anak-anak"
+                        WHEN TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) < 30 THEN "Remaja/Dewasa Muda"
+                        WHEN TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) < 50 THEN "Dewasa"
+                        WHEN TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) < 65 THEN "Paruh Baya"
                         ELSE "Lansia"
                     END as age_group,
                     COUNT(*) as count
                 ')
                 ->groupBy('age_group')
-                ->get()
-            ]
-        ];
+                ->get();
+            } else {
+                $stats['members'] = [
+                    'total' => 0,
+                    'by_gender' => collect([]),
+                    'by_status' => collect([]),
+                    'by_age_group' => collect([])
+                ];
+            }
+            
+        } catch (\Exception $e) {
+            \Log::warning('Error loading statistics: ' . $e->getMessage());
+            $stats = [
+                'families' => ['total' => 0, 'by_city' => collect([])],
+                'members' => ['total' => 0, 'by_gender' => collect([]), 'by_status' => collect([]), 'by_age_group' => collect([])]
+            ];
+        }
         
         return view('public.statistics', compact('stats'));
     }
-     
+
+    /**
+     * Helper method to get family statistics
+     */
+    private function getFamilyStatistics(Family $family): array
+    {
+        try {
+            if (!Schema::hasTable('members')) {
+                return [
+                    'total_members' => 0,
+                    'male_members' => 0,
+                    'female_members' => 0,
+                    'married_members' => 0,
+                    'alive_members' => 0,
+                    'recent_activities' => collect([]),
+                ];
+            }
+
+            $stats = [
+                'total_members' => $family->members()->count(),
+                'male_members' => $family->members()->where('gender', 'male')->count(),
+                'female_members' => $family->members()->where('gender', 'female')->count(),
+                'married_members' => $family->members()->where('marital_status', 'married')->count(),
+                'alive_members' => $family->members()->whereNull('death_date')->count(),
+            ];
+
+            if (Schema::hasTable('activity_logs')) {
+                $stats['recent_activities'] = $family->activityLogs()->latest()->limit(5)->get();
+            } else {
+                $stats['recent_activities'] = collect([]);
+            }
+
+            return $stats;
+            
+        } catch (\Exception $e) {
+            \Log::warning('Error getting family statistics: ' . $e->getMessage());
+            return [
+                'total_members' => 0,
+                'male_members' => 0,
+                'female_members' => 0,
+                'married_members' => 0,
+                'alive_members' => 0,
+                'recent_activities' => collect([]),
+            ];
+        }
+    }
+
+    /**
+     * Get member level in family tree
+     */
+    private function getMemberLevel(Member $member, $level = 1): int
+    {
+        if ($member->parent_id) {
+            $parent = Member::find($member->parent_id);
+            if ($parent) {
+                return $this->getMemberLevel($parent, $level + 1);
+            }
+        }
+        return $level;
+    }
 }
+?>

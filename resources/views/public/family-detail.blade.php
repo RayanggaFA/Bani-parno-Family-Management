@@ -1,6 +1,7 @@
+{{-- resources/views/public/families/show.blade.php - ENHANCED WITH CRUD --}}
 @extends('layouts.app')
 
-@section('title', $family->name . ' - Detail Keluarga')
+@section('title', $family->name . ' - Dashboard Keluarga')
 
 @section('content')
 <!-- Family Header -->
@@ -18,6 +19,9 @@
                             <i class="fas fa-map-marker-alt mr-2"></i>
                             {{ $family->domicile }}
                         </p>
+                        <p class="text-indigo-200 text-sm mt-1">
+                            <i class="fas fa-user mr-2"></i>Admin: {{ $family->username }}
+                        </p>
                     </div>
                 </div>
                 
@@ -25,60 +29,77 @@
                     <p class="text-lg text-indigo-100 leading-relaxed mb-6">{{ $family->description }}</p>
                 @endif
                 
-                <!-- Family Stats -->
+                <!-- Family Stats - FIXED WITH ACTUAL DATABASE COLUMNS -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 text-center">
-                        <div class="text-2xl font-bold">{{ $family->members_count ?? 0 }}</div>
-                        <div class="text-indigo-100 text-sm">Anggota</div>
+                        <div class="text-2xl font-bold">{{ $stats['total_members'] ?? 0 }}</div>
+                        <div class="text-indigo-100 text-sm">Total Anggota</div>
                     </div>
                     <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 text-center">
-                        <div class="text-2xl font-bold">{{ $family->members()->distinct('generation')->count() }}</div>
-                        <div class="text-indigo-100 text-sm">Generasi</div>
+                        <div class="text-2xl font-bold">{{ $stats['male_members'] ?? 0 }}</div>
+                        <div class="text-indigo-100 text-sm">Laki-laki</div>
                     </div>
                     <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 text-center">
-                        <div class="text-2xl font-bold">{{ $family->created_at->format('Y') }}</div>
-                        <div class="text-indigo-100 text-sm">Bergabung</div>
+                        <div class="text-2xl font-bold">{{ $stats['female_members'] ?? 0 }}</div>
+                        <div class="text-indigo-100 text-sm">Perempuan</div>
                     </div>
                     <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 text-center">
-                        <div class="text-2xl font-bold">{{ $family->activityLogs()->count() }}</div>
-                        <div class="text-indigo-100 text-sm">Aktivitas</div>
+                        <div class="text-2xl font-bold">{{ $stats['married_members'] ?? 0 }}</div>
+                        <div class="text-indigo-100 text-sm">Menikah</div>
                     </div>
                 </div>
             </div>
             
-            <!-- Admin Actions -->
-            @auth('family')
-                @if(Auth::guard('family')->id() === $family->id)
-                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 min-w-80">
-                        <h3 class="text-xl font-bold text-white mb-4 flex items-center">
-                            <i class="fas fa-user-shield mr-2"></i>
-                            Panel Admin
-                        </h3>
-                        <div class="space-y-3">
-                            <a href="{{ route('families.edit', $family) }}" 
-                               class="w-full bg-white/20 hover:bg-white/30 text-white font-medium py-3 px-4 rounded-lg transition flex items-center justify-center">
-                                <i class="fas fa-edit mr-2"></i>
-                                Edit Keluarga
+            <!-- Admin Actions Panel -->
+            @if($isAdmin)
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 min-w-80">
+                    <h3 class="text-xl font-bold text-white mb-4 flex items-center">
+                        <i class="fas fa-user-shield mr-2"></i>
+                        Panel Admin
+                    </h3>
+                    <div class="space-y-3">
+                        <a href="{{ route('families.edit', $family) }}" 
+                           class="w-full bg-white/20 hover:bg-white/30 text-white font-medium py-3 px-4 rounded-lg transition flex items-center justify-center">
+                            <i class="fas fa-edit mr-2"></i>
+                            Edit Keluarga
+                        </a>
+                        <a href="{{ route('members.create') }}" 
+                           class="w-full bg-green-500/20 hover:bg-green-500/30 text-white font-medium py-3 px-4 rounded-lg transition flex items-center justify-center">
+                            <i class="fas fa-user-plus mr-2"></i>
+                            Tambah Anggota
+                        </a>
+                        @if($stats['total_members'] > 0)
+                            <a href="{{ route('families.tree', $family) }}" 
+                               class="w-full bg-purple-500/20 hover:bg-purple-500/30 text-white font-medium py-3 px-4 rounded-lg transition flex items-center justify-center">
+                                <i class="fas fa-sitemap mr-2"></i>
+                                Pohon Keluarga
                             </a>
-                            <a href="{{ route('members.create') }}" 
-                               class="w-full bg-green-500/20 hover:bg-green-500/30 text-white font-medium py-3 px-4 rounded-lg transition flex items-center justify-center">
-                                <i class="fas fa-user-plus mr-2"></i>
-                                Tambah Anggota
-                            </a>
-                            @if($family->members_count > 0)
-                                <a href="{{ route('families.tree', $family) }}" 
-                                   class="w-full bg-purple-500/20 hover:bg-purple-500/30 text-white font-medium py-3 px-4 rounded-lg transition flex items-center justify-center">
-                                    <i class="fas fa-sitemap mr-2"></i>
-                                    Pohon Keluarga
-                                </a>
-                            @endif
-                        </div>
+                        @endif
                     </div>
-                @endif
-            @endauth
+                </div>
+            @endif
         </div>
     </div>
 </section>
+
+<!-- Success/Error Messages -->
+@if(session('success'))
+    <div class="bg-green-50 border-l-4 border-green-500 p-4 mx-4 my-4 rounded-r-lg">
+        <div class="flex items-center">
+            <i class="fas fa-check-circle text-green-500 mr-3"></i>
+            <p class="text-green-800 font-medium">{{ session('success') }}</p>
+        </div>
+    </div>
+@endif
+
+@if(session('error'))
+    <div class="bg-red-50 border-l-4 border-red-500 p-4 mx-4 my-4 rounded-r-lg">
+        <div class="flex items-center">
+            <i class="fas fa-exclamation-circle text-red-500 mr-3"></i>
+            <p class="text-red-800 font-medium">{{ session('error') }}</p>
+        </div>
+    </div>
+@endif
 
 <!-- Members Section -->
 <section class="py-16 bg-white">
@@ -86,91 +107,88 @@
         <div class="flex items-center justify-between mb-12">
             <div>
                 <h2 class="text-3xl font-bold text-gray-900 mb-2">Anggota Keluarga</h2>
-                <p class="text-gray-600">Daftar semua anggota dalam keluarga {{ $family->name }}</p>
+                <p class="text-gray-600">Kelola semua anggota dalam keluarga {{ $family->name }}</p>
             </div>
             
-            @auth('family')
-                @if(Auth::guard('family')->id() === $family->id)
-                    <a href="{{ route('members.create') }}" 
-                       class="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition flex items-center">
-                        <i class="fas fa-user-plus mr-2"></i>
-                        Tambah Anggota
-                    </a>
-                @endif
-            @endauth
+            @if($isAdmin)
+                <a href="{{ route('members.create') }}" 
+                   class="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition flex items-center shadow-lg transform hover:scale-105">
+                    <i class="fas fa-user-plus mr-2"></i>
+                    Tambah Anggota
+                </a>
+            @endif
         </div>
 
-        @if($family->members_count > 0)
-            <!-- Generation Filter -->
-            <div class="mb-8">
-                <div class="flex flex-wrap gap-2" id="generationFilter">
-                    <button onclick="filterByGeneration('all')" 
-                            class="filter-btn active bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition">
-                        Semua Generasi
-                    </button>
-                    @foreach($family->members()->select('generation')->distinct()->orderBy('generation')->pluck('generation') as $gen)
-                        <button onclick="filterByGeneration({{ $gen }})" 
-                                class="filter-btn bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium transition">
-                            Generasi {{ $gen }}
-                        </button>
-                    @endforeach
-                </div>
-            </div>
-
-            <!-- Members Grid -->
+        @if($allMembers->count() > 0)
+            <!-- Members Grid with CRUD Actions -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="membersGrid">
-                @foreach($family->members()->with('parent')->orderBy('generation')->orderBy('full_name')->get() as $member)
-                    <div class="member-card bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300 transform hover:-translate-y-1" 
-                         data-generation="{{ $member->generation }}">
-                        <!-- Member Photo -->
+                @foreach($allMembers as $member)
+                    <div class="member-card bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300 transform hover:-translate-y-1 border border-gray-100">
+                        <!-- Member Avatar/Photo -->
                         <div class="relative">
-                            @if($member->profile_photo)
-                                <img src="{{ asset('storage/' . $member->profile_photo) }}" 
-                                     alt="{{ $member->full_name }}"
-                                     class="w-full h-48 object-cover">
-                            @else
-                                <div class="w-full h-48 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-                                    <i class="fas fa-user text-gray-500 text-4xl"></i>
+                            <div class="w-full h-48 bg-gradient-to-br from-{{ $member->gender === 'male' ? 'blue' : 'pink' }}-200 to-{{ $member->gender === 'male' ? 'indigo' : 'purple' }}-300 flex items-center justify-center">
+                                <i class="fas fa-user text-{{ $member->gender === 'male' ? 'blue' : 'pink' }}-600 text-6xl opacity-50"></i>
+                            </div>
+                            
+                            <!-- Gender Badge -->
+                            <div class="absolute top-3 right-3 w-8 h-8 {{ $member->gender === 'male' ? 'bg-blue-500' : 'bg-pink-500' }} rounded-full flex items-center justify-center">
+                                <i class="fas fa-{{ $member->gender === 'male' ? 'male' : 'female' }} text-white text-sm"></i>
+                            </div>
+                            
+                            <!-- Status Badge -->
+                            @if(!$member->is_alive)
+                                <div class="absolute top-3 left-3 bg-gray-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                                    <i class="fas fa-cross mr-1"></i>Almarhum
                                 </div>
                             @endif
-                            
-                            <!-- Generation Badge -->
-                            <div class="absolute top-3 right-3 bg-indigo-600 text-white text-xs font-bold px-2 py-1 rounded-full">
-                                Gen {{ $member->generation }}
-                            </div>
-                            
-                            <!-- Gender Icon -->
-                            <div class="absolute top-3 left-3 w-8 h-8 {{ $member->gender === 'Laki-laki' ? 'bg-blue-500' : 'bg-pink-500' }} rounded-full flex items-center justify-center">
-                                <i class="fas fa-{{ $member->gender === 'Laki-laki' ? 'mars' : 'venus' }} text-white text-sm"></i>
-                            </div>
                         </div>
                         
                         <!-- Member Info -->
                         <div class="p-6">
-                            <h3 class="text-lg font-bold text-gray-900 mb-2">{{ $member->full_name }}</h3>
+                            <div class="mb-4">
+                                <h3 class="text-lg font-bold text-gray-900 mb-1">{{ $member->full_name }}</h3>
+                                @if($member->parent)
+                                    <p class="text-sm text-blue-600">
+                                        <i class="fas fa-link mr-1"></i>Anak dari {{ $member->parent->name }}
+                                    </p>
+                                @endif
+                            </div>
                             
                             <div class="space-y-2 text-sm text-gray-600 mb-4">
-                                <p class="flex items-center">
-                                    <i class="fas fa-birthday-cake mr-2 w-4"></i>
-                                    {{ $member->birth_place }}, {{ \Carbon\Carbon::parse($member->birth_date)->format('d M Y') }}
-                                </p>
+                                @if($member->birth_date)
+                                    <p class="flex items-center">
+                                        <i class="fas fa-birthday-cake mr-2 w-4 text-orange-500"></i>
+                                        @if($member->birth_place){{ $member->birth_place }}, @endif
+                                        {{ $member->birth_date->format('d M Y') }}
+                                        @if($member->age) ({{ $member->age }} th) @endif
+                                    </p>
+                                @endif
                                 
                                 @if($member->occupation)
                                     <p class="flex items-center">
-                                        <i class="fas fa-briefcase mr-2 w-4"></i>
+                                        <i class="fas fa-briefcase mr-2 w-4 text-teal-500"></i>
                                         {{ $member->occupation }}
                                     </p>
                                 @endif
                                 
-                                <p class="flex items-center">
-                                    <i class="fas fa-map-marker-alt mr-2 w-4"></i>
-                                    {{ $member->domicile_city }}, {{ $member->domicile_province }}
-                                </p>
+                                @if($member->phone)
+                                    <p class="flex items-center">
+                                        <i class="fas fa-phone mr-2 w-4 text-green-500"></i>
+                                        {{ $member->phone }}
+                                    </p>
+                                @endif
                                 
-                                @if($member->parent)
-                                    <p class="flex items-center text-blue-600">
-                                        <i class="fas fa-link mr-2 w-4"></i>
-                                        Anak dari {{ $member->parent->full_name }}
+                                @if($member->address)
+                                    <p class="flex items-center">
+                                        <i class="fas fa-map-marker-alt mr-2 w-4 text-red-500"></i>
+                                        {{ Str::limit($member->address, 30) }}
+                                    </p>
+                                @endif
+                                
+                                @if($member->children->count() > 0)
+                                    <p class="flex items-center text-indigo-600">
+                                        <i class="fas fa-users mr-2 w-4"></i>
+                                        {{ $member->children->count() }} anak
                                     </p>
                                 @endif
                             </div>
@@ -178,80 +196,114 @@
                             <!-- Status Badge -->
                             <div class="mb-4">
                                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
-                                    {{ $member->status === 'Sudah Menikah' ? 'bg-green-100 text-green-800' : 
-                                       ($member->status === 'Belum Menikah' ? 'bg-blue-100 text-blue-800' : 
-                                       ($member->status === 'Janda/Duda' ? 'bg-orange-100 text-orange-800' : 'bg-gray-100 text-gray-800')) }}">
-                                    {{ $member->status }}
+                                    @if($member->marital_status === 'married') bg-green-100 text-green-800
+                                    @elseif($member->marital_status === 'single') bg-blue-100 text-blue-800
+                                    @elseif($member->marital_status === 'widowed') bg-orange-100 text-orange-800
+                                    @else bg-gray-100 text-gray-800
+                                    @endif">
+                                    <i class="fas fa-heart mr-1"></i>
+                                    {{ $member->marital_status_text }}
                                 </span>
                             </div>
-                            <!-- Actions -->
+                            
+                            <!-- CRUD Actions -->
                             <div class="flex gap-2">
+                                <!-- View Detail -->
                                 <a href="{{ route('members.show', $member) }}" 
                                    class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-center py-2 px-3 rounded-lg transition text-sm font-medium">
                                     <i class="fas fa-eye mr-1"></i>Detail
                                 </a>
                                 
-                                @auth('family')
-                                    @if(Auth::guard('family')->id() === $family->id)
-                                        <a href="{{ route('members.edit', $member) }}" 
-                                           class="bg-green-600 hover:bg-green-700 text-white py-2 px-3 rounded-lg transition">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                    @endif
-                                @endauth
+                                @if($isAdmin)
+                                    <!-- Edit Member -->
+                                    <a href="{{ route('members.edit', $member) }}" 
+                                       class="bg-green-600 hover:bg-green-700 text-white py-2 px-3 rounded-lg transition text-sm font-medium"
+                                       title="Edit {{ $member->name }}">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    
+                                    <!-- Delete Member -->
+                                    <button onclick="confirmDelete('{{ $member->name }}', '{{ route('members.destroy', $member) }}')"
+                                            class="bg-red-600 hover:bg-red-700 text-white py-2 px-3 rounded-lg transition text-sm font-medium"
+                                            title="Hapus {{ $member->name }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                @endif
                             </div>
                         </div>
                     </div>
                 @endforeach
             </div>
+            
+            <!-- Quick Stats -->
+            @if($isAdmin)
+                <div class="mt-12 bg-gray-50 rounded-2xl p-8">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6 text-center">Statistik Detail Keluarga</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-blue-600">{{ $stats['male_members'] }}</div>
+                            <div class="text-sm text-gray-600">Laki-laki</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-pink-600">{{ $stats['female_members'] }}</div>
+                            <div class="text-sm text-gray-600">Perempuan</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600">{{ $stats['married_members'] }}</div>
+                            <div class="text-sm text-gray-600">Menikah</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-orange-600">{{ $stats['alive_members'] }}</div>
+                            <div class="text-sm text-gray-600">Masih Hidup</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-indigo-600">{{ $allMembers->whereNull('parent_id')->count() }}</div>
+                            <div class="text-sm text-gray-600">Generasi Pertama</div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+            
         @else
             <!-- Empty State -->
             <div class="text-center py-16">
                 <div class="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
                     <i class="fas fa-user-friends text-gray-400 text-4xl"></i>
                 </div>
-                <h3 class="text-2xl font-semibold text-gray-900 mb-4">Belum Ada Anggota</h3>
+                <h3 class="text-2xl font-semibold text-gray-900 mb-4">Belum Ada Anggota Keluarga</h3>
                 <p class="text-gray-600 mb-8 max-w-md mx-auto">
                     Keluarga ini belum memiliki anggota yang terdaftar. 
-                    @auth('family')
-                        @if(Auth::guard('family')->id() === $family->id)
-                            Mulai tambahkan anggota keluarga Anda sekarang.
-                        @endif
-                    @endauth
+                    @if($isAdmin)
+                        Mulai tambahkan anggota keluarga Anda sekarang untuk membangun silsilah.
+                    @endif
                 </p>
                 
-                @auth('family')
-                    @if(Auth::guard('family')->id() === $family->id)
-                        <a href="{{ route('members.create') }}" 
-                           class="bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg transition font-medium">
-                            <i class="fas fa-user-plus mr-2"></i>
-                            Tambah Anggota Pertama
-                        </a>
-                    @endif
-                @endauth
+                @if($isAdmin)
+                    <a href="{{ route('members.create') }}" 
+                       class="bg-green-600 hover:bg-green-700 text-white py-4 px-8 rounded-xl transition font-medium shadow-lg transform hover:scale-105">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        Tambah Anggota Pertama
+                    </a>
+                @endif
             </div>
         @endif
     </div>
 </section>
 
 <!-- Recent Activities Section -->
-<section class="py-16 bg-gray-50">
-    <div class="max-w-7xl mx-auto px-4">
-        <div class="flex items-center justify-between mb-8">
-            <h2 class="text-3xl font-bold text-gray-900">Aktivitas Terbaru</h2>
-            <a href="{{ route('activity.history', ['family_id' => $family->id]) }}" 
-               class="text-indigo-600 hover:text-indigo-800 font-medium">
-                Lihat Semua →
-            </a>
-        </div>
-        
-        @php
-            $recentActivities = $family->activityLogs()->latest()->take(5)->get();
-        @endphp
-        
-        @if($recentActivities->count() > 0)
+@if($stats['recent_activities']->count() > 0)
+    <section class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">Aktivitas Terbaru</h2>
+                <a href="{{ route('activity.history', ['family_id' => $family->id]) }}" 
+                   class="text-indigo-600 hover:text-indigo-800 font-medium">
+                    Lihat Semua →
+                </a>
+            </div>
+            
             <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-                @foreach($recentActivities as $activity)
+                @foreach($stats['recent_activities'] as $activity)
                     <div class="flex items-start p-6 {{ !$loop->last ? 'border-b border-gray-100' : '' }} hover:bg-gray-50 transition">
                         <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
                             <i class="fas fa-{{ $activity->subject_type === 'family' ? 'home' : ($activity->subject_type === 'member' ? 'user' : 'circle') }} text-indigo-600"></i>
@@ -266,20 +318,12 @@
                     </div>
                 @endforeach
             </div>
-        @else
-            <div class="bg-white rounded-2xl shadow-lg p-12 text-center">
-                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-history text-gray-400 text-2xl"></i>
-                </div>
-                <h3 class="text-lg font-semibold text-gray-900 mb-2">Belum Ada Aktivitas</h3>
-                <p class="text-gray-600">Aktivitas keluarga akan muncul di sini</p>
-            </div>
-        @endif
-    </div>
-</section>
+        </div>
+    </section>
+@endif
 
 <!-- Family Tree CTA -->
-@if($family->members_count > 0)
+@if($stats['total_members'] > 0)
     <section class="py-16 bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
         <div class="max-w-4xl mx-auto px-4 text-center">
             <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-6">
@@ -298,44 +342,67 @@
     </section>
 @endif
 
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+        <div class="text-center">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Konfirmasi Penghapusan</h3>
+            <p class="text-gray-600 mb-6">
+                Apakah Anda yakin ingin menghapus <strong id="memberName"></strong>? 
+                Tindakan ini tidak dapat dibatalkan.
+            </p>
+            <div class="flex gap-4">
+                <button onclick="closeDeleteModal()" 
+                        class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 px-4 rounded-lg transition font-medium">
+                    Batal
+                </button>
+                <form id="deleteForm" method="POST" class="flex-1">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" 
+                            class="w-full bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-lg transition font-medium">
+                        Hapus
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-// Family detail page interactions
-function filterByGeneration(generation) {
-    const cards = document.querySelectorAll('.member-card');
-    const buttons = document.querySelectorAll('.filter-btn');
-    
-    // Update button states
-    buttons.forEach(btn => {
-        btn.classList.remove('active', 'bg-indigo-600', 'text-white');
-        btn.classList.add('bg-gray-200', 'text-gray-700');
-    });
-    
-    // Activate current button
-    event.target.classList.add('active', 'bg-indigo-600', 'text-white');
-    event.target.classList.remove('bg-gray-200', 'text-gray-700');
-    
-    // Filter cards with animation
-    cards.forEach((card, index) => {
-        if (generation === 'all' || card.dataset.generation == generation) {
-            card.style.display = 'block';
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(20px)';
-            
-            setTimeout(() => {
-                card.style.transition = 'all 0.3s ease';
-                card.style.opacity = '1';
-                card.style.transform = 'translateY(0)';
-            }, index * 50);
-        } else {
-            card.style.transition = 'all 0.3s ease';
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(-20px)';
-            
-            setTimeout(() => {
-                card.style.display = 'none';
-            }, 300);
-        }
-    });
+// Delete confirmation
+function confirmDelete(memberName, deleteUrl) {
+    document.getElementById('memberName').textContent = memberName;
+    document.getElementById('deleteForm').action = deleteUrl;
+    document.getElementById('deleteModal').classList.remove('hidden');
 }
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+}
+
+// Close modal when clicking outside
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDeleteModal();
+    }
+});
+
+// Auto-hide success/error messages
+document.addEventListener('DOMContentLoaded', function() {
+    const messages = document.querySelectorAll('.bg-green-50, .bg-red-50');
+    messages.forEach(message => {
+        setTimeout(() => {
+            message.style.transition = 'opacity 0.5s ease-out';
+            message.style.opacity = '0';
+            setTimeout(() => {
+                message.remove();
+            }, 500);
+        }, 5000);
+    });
+});
 </script>
 @endsection
