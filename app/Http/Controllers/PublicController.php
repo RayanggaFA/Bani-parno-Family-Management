@@ -63,7 +63,9 @@ class PublicController extends Controller
         try {
             if (Schema::hasTable('members')) {
                 // Load members with parent and children relations
-                $family->load(['members.parent', 'members.children']);
+                $family->load(['members' => function($query) {
+                $query->orderBy('full_name');
+            }]);
                 $allMembers = $family->members;
                 $rootMembers = $family->members->where('parent_id', null);
             }
@@ -218,7 +220,30 @@ class PublicController extends Controller
 
         return view('public.activity_logs', compact('logs', 'sort'));
     }
+
+    private function getMemberNameColumn()
+    {
+        if (!Schema::hasTable('members')) {
+            return 'id';
+        }
+        
+        $columns = Schema::getColumnListing('members');
+        
+        // Priority order: name -> full_name -> first_name -> member_name -> id
+        if (in_array('name', $columns)) {
+            return 'name';
+        } elseif (in_array('full_name', $columns)) {
+            return 'full_name';
+        } elseif (in_array('first_name', $columns)) {
+            return 'first_name';
+        } elseif (in_array('member_name', $columns)) {
+            return 'member_name';
+        }
+        
+        return 'id'; // fallback
+    }
     
+   
     public function statistics()
     {
         try {

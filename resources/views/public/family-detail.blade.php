@@ -273,22 +273,30 @@
                 <h3 class="text-2xl font-semibold text-gray-900 mb-4">Belum Ada Anggota Keluarga</h3>
                 <p class="text-gray-600 mb-8 max-w-md mx-auto">
                     Keluarga ini belum memiliki anggota yang terdaftar. 
-                    @if($isAdmin)
                         Mulai tambahkan anggota keluarga Anda sekarang untuk membangun silsilah.
-                    @endif
                 </p>
-                
-                @if($isAdmin)
                     <a href="{{ route('members.create') }}" 
                        class="bg-green-600 hover:bg-green-700 text-white py-4 px-8 rounded-xl transition font-medium shadow-lg transform hover:scale-105">
                         <i class="fas fa-user-plus mr-2"></i>
                         Tambah Anggota Pertama
                     </a>
-                @endif
             </div>
         @endif
     </div>
 </section>
+
+            <!-- Logout -->
+            <form action="{{ route('auth.logout') }}" method="POST" class="w-full">
+                @csrf
+                <button type="submit"
+                    class="w-full bg-red-500/20 hover:bg-red-500/30 text-white font-medium py-3 px-4 rounded-lg transition flex items-center justify-center">
+                    <i class="fas fa-sign-out-alt mr-2"></i>
+                    Logout
+                </button>
+            </form>
+        </div>
+    </div>
+
 
 <!-- Recent Activities Section -->
 @if($stats['recent_activities']->count() > 0)

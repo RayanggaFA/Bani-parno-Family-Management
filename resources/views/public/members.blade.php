@@ -14,9 +14,10 @@
                     <h2 class="text-2xl font-bold text-gray-900 mb-2">Daftar Anggota Keluarga</h2>
                     <p class="text-gray-600">Kelola informasi seluruh anggota keluarga</p>
                 </div>
-                <button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition flex items-center shadow-md">
-                    <i class="fas fa-user-plus mr-2"></i>Tambah Anggota
-                </button>
+                <a href="{{ route('member.form') }}" 
+   class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition flex items-center shadow-md">
+   <i class="fas fa-user-plus mr-2"></i>Tambah Anggota
+</a>
             </div>
         </div>
 

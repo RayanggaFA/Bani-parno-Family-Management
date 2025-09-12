@@ -57,13 +57,13 @@
                         <i class="fas fa-history mr-1"></i> Riwayat Perubahan
                     </a>
                     <div class="flex items-center space-x-3 ml-4 border-l border-gray-300 pl-6">
-            <a href="{{ route('auth.login') }}" class="nav-link {{ request()->routeIs('auth.login') ? 'active' : '' }}">
-                <i class="fas fa-sign-in-alt mr-1"></i> Login
-            </a>
-            <a href="{{ route('families.create') }}" 
-   class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition duration-200">
-    <i class="fas fa-user-plus mr-1"></i> Daftar
-</a>
+                    <a href="{{ route('auth.login') }}" class="nav-link {{ request()->routeIs('auth.login') ? 'active' : '' }}">
+                    <i class="fas fa-sign-in-alt mr-1"></i> Login
+                    </a>
+                         <a href="{{ route('family.form') }}" 
+                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                    <i class="fas fa-user-plus mr-1"></i> Daftar
+                        </a>
 
                 <!-- Mobile menu button -->
                 <div class="md:hidden">

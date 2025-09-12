@@ -67,5 +67,6 @@ class Kernel extends HttpKernel
         'auth.family' => \App\Http\Middleware\FamilyAuth::class,
         'guest.family' => \App\Http\Middleware\RedirectIfFamilyAuthenticated::class,
         'guest.family' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+        'guest.family' => \App\Http\Middleware\GuestFamily::class,
     ];
 }

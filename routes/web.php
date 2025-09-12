@@ -39,6 +39,8 @@ Route::prefix('keluarga')->name('families.')->group(function () {
     });
 });
 
+Route::get('/family-form', [FamilyFormController::class, 'create'])->name('family.form');
+
 /*
 |--------------------------------------------------------------------------
 | Members (Anggota)
@@ -58,6 +60,7 @@ Route::prefix('anggota')->name('members.')->group(function () {
         Route::delete('/{member}', [MemberFormController::class, 'destroy'])->name('destroy');
     });
 });
+
 
 /*
 |--------------------------------------------------------------------------

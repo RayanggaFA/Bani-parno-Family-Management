@@ -13,19 +13,42 @@ use Illuminate\Support\Facades\Log;
 
 class MemberFormController extends Controller
 {
-    public function create()
+    public function create(Family $family)
     {
-        // Admin check
+        // Admin check using FAMILY GUARD
         if (!Auth::guard('family')->check()) {
             return redirect()->route('auth.login')
                 ->with('error', 'Silakan login sebagai admin keluarga untuk menambah anggota.');
         }
         
-        $family = Auth::guard('family')->user();
-        $potentialParents = $family->members()->orderBy('name')->get();
+        $authFamily = Auth::guard('family')->user();
         
-        return view('public.members.create', compact('family', 'potentialParents'));
+        // Check if authenticated family can manage this family
+        if ($authFamily->id !== $family->id) {
+            abort(403, 'Anda tidak memiliki akses untuk menambah anggota pada keluarga ini.');
+        }
+        
+        // FIX: Check kolom apa yang ada di members table
+        $columns = Schema::getColumnListing('members');
+        \Log::info('Members table columns:', $columns);
+        
+        // Determine correct name column
+        $orderByColumn = 'id'; // fallback default
+        if (in_array('name', $columns)) {
+            $orderByColumn = 'name';
+        } elseif (in_array('full_name', $columns)) {
+            $orderByColumn = 'full_name';
+        } elseif (in_array('first_name', $columns)) {
+            $orderByColumn = 'first_name';
+        } elseif (in_array('member_name', $columns)) {
+            $orderByColumn = 'member_name';
+        }
+        
+        $potentialParents = $family->members()->orderBy($orderByColumn)->get();
+        
+        return view('public.member-form', compact('family', 'potentialParents'));
     }
+
 
     public function store(Request $request)
     {
@@ -133,7 +156,7 @@ class MemberFormController extends Controller
             abort(403, 'Anda hanya dapat mengedit anggota keluarga Anda sendiri.');
         }
         
-        $potentialParents = $family->members()->where('id', '!=', $member->id)->orderBy('name')->get();
+        $potentialParents = $family->members()->orderBy('full_name')->get();
         
         return view('public.members.edit', compact('member', 'family', 'potentialParents'));
     }

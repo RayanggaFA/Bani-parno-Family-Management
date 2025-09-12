@@ -15,14 +15,16 @@ class ActivityLog extends Model
         'subject_type',
         'subject_id',
         'description',
-        'user_agent',
-        'ip_address',
+        'user_agent',    
+        'ip_address',    
     ];
 
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+
 
     // ===================== RELATIONSHIPS =====================
     
@@ -66,4 +68,5 @@ class ActivityLog extends Model
         
         return $types[$this->subject_type] ?? ucfirst($this->subject_type);
     }
+
 }

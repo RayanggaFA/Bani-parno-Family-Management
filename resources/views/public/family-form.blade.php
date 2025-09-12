@@ -119,22 +119,23 @@
                 </div>
 
 
-                <!-- Submit Button -->
-                <div class="flex space-x-4">
-                    <button type="submit" id="submitBtn"
-                            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg transition duration-200 transform hover:scale-105 focus:ring-4 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span id="submitText">
-                            <i class="fas fa-user-plus mr-2"></i>Daftar Keluarga
-                        </span>
-                        <span id="loadingText" class="hidden">
-                            <i class="fas fa-spinner fa-spin mr-2"></i>Memproses...
-                        </span>
-                    </button>
-                    <a href="{{ route('families.index') }}" 
-                       class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-4 px-6 rounded-lg transition duration-200 text-center">
-                        <i class="fas fa-arrow-left mr-2"></i>Kembali
-                    </a>
-                </div>
+    <!-- Submit Button -->
+    <div class="flex space-x-4">
+        <button type="submit" id="submitBtn"
+                class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg transition duration-200 transform hover:scale-105 focus:ring-4 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed">
+            <span id="submitText">
+                <i class="fas fa-user-plus mr-2"></i>Daftar Keluarga
+            </span>
+            <span id="loadingText" class="hidden">
+                <i class="fas fa-spinner fa-spin mr-2"></i>Memproses...
+            </span>
+        </button>
+        <a href="{{ route('families.index') }}" 
+           class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-4 px-6 rounded-lg transition duration-200 text-center">
+            <i class="fas fa-arrow-left mr-2"></i>Kembali
+        </a>
+    </div>
+</form>
 
                 <!-- Login Link -->
                 <div class="text-center pt-4 border-t border-gray-200">

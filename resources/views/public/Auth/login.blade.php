@@ -105,7 +105,7 @@
                 <div class="text-center pt-4 border-t border-gray-200">
                     <p class="text-gray-600">
                         Belum punya akun keluarga?
-                        <a href="{{ route('families.create') }}" class="text-indigo-600 hover:text-indigo-700 font-medium transition">
+                        <a href="{{ route('family.form') }}" class="text-indigo-600 hover:text-indigo-700 font-medium transition">
                             Daftar di sini
                         </a>
                     </p>

@@ -32,7 +32,31 @@ class Member extends Model
 
     protected $casts = [
         'birth_date' => 'date',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
+
+    public function getNameAttribute($value)
+    {
+        // Jika ada field 'name', return value
+        if ($value !== null) {
+            return $value;
+        }
+        
+        // Fallback ke field lain jika ada
+        if (isset($this->attributes['full_name'])) {
+            return $this->attributes['full_name'];
+        }
+        
+        if (isset($this->attributes['first_name'])) {
+            $firstName = $this->attributes['first_name'];
+            $lastName = $this->attributes['last_name'] ?? '';
+            return trim($firstName . ' ' . $lastName);
+        }
+        
+        return 'Unknown Member';
+    }
+
 
     public function family()
     {
