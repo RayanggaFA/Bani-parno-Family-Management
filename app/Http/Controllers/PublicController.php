@@ -76,73 +76,52 @@ class PublicController extends Controller
     }
 
     public function members(Request $request)
-    {
-        try {
-            if (!Schema::hasTable('members')) {
-                $members = collect([])->paginate(20);
-                $families = Family::orderBy('name')->pluck('name', 'id');
-                $cities = collect([]);
-                return view('public.members', compact('members', 'families', 'cities'));
-            }
-
-            $query = Member::with('family');
-            
-            // Filters with correct database columns
-            if ($request->filled('family_id')) {
-                $query->where('family_id', $request->family_id);
-            }
-            
-            if ($request->filled('gender')) {
-                $query->where('gender', $request->gender);
-            }
-            
-            if ($request->filled('marital_status')) {
-                $query->where('marital_status', $request->marital_status);
-            }
-            
-            if ($request->filled('search')) {
-                $query->where(function($q) use ($request) {
-                    $q->where('name', 'like', '%' . $request->search . '%')
-                      ->orWhere('occupation', 'like', '%' . $request->search . '%')
-                      ->orWhere('birth_place', 'like', '%' . $request->search . '%');
-                });
-            }
-
-            // Sorting with correct column names
-            $sortBy = $request->get('sort', 'name');
-            $sortDirection = $request->get('direction', 'asc');
-            
-            $allowedSorts = ['name', 'birth_date', 'gender', 'marital_status', 'occupation'];
-            if (!in_array($sortBy, $allowedSorts)) {
-                $sortBy = 'name';
-            }
-            
-            $query->orderBy($sortBy, $sortDirection);
-
-            $members = $query->paginate(20)->appends($request->all());
-            
-            // Data untuk filters
-            $families = Family::orderBy('name')->pluck('name', 'id');
-            
-            $cities = Member::whereNotNull('address')
-                          ->pluck('address')
-                          ->map(function($address) {
-                              return trim(explode(',', $address)[0] ?? '');
-                          })
-                          ->filter()
-                          ->unique()
-                          ->sort()
-                          ->values();
-            
-        } catch (\Exception $e) {
-            \Log::warning('Error loading members: ' . $e->getMessage());
-            $members = collect([])->paginate(20);
-            $families = Family::orderBy('name')->pluck('name', 'id');
-            $cities = collect([]);
-        }
-        
-        return view('public.members', compact('members', 'families', 'cities'));
+{
+    $query = Member::with('family');
+    
+    // Filters
+    if ($request->filled('family_id')) {
+        $query->where('family_id', $request->family_id);
     }
+    
+    if ($request->filled('gender')) {
+        $query->where('gender', $request->gender);
+    }
+    
+    if ($request->filled('generation')) {
+        $query->where('generation', $request->generation);
+    }
+    
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+    
+    if ($request->filled('city')) {
+        $query->where('domicile_city', 'like', '%' . $request->city . '%');
+    }
+    
+    if ($request->filled('search')) {
+        $query->where(function($q) use ($request) {
+            $q->where('full_name', 'like', '%' . $request->search . '%')
+              ->orWhere('occupation', 'like', '%' . $request->search . '%')
+              ->orWhere('birth_place', 'like', '%' . $request->search . '%');
+        });
+    }
+
+    // Sorting
+    $sortBy = $request->get('sort', 'full_name');
+    $sortDirection = $request->get('direction', 'asc');
+    $query->orderBy($sortBy, $sortDirection);
+
+    $members = $query->paginate(20)->appends($request->all());
+    
+    // Data untuk filters
+    $families = Family::orderBy('name')->pluck('name', 'id');
+    $cities = Member::select('domicile_city')->distinct()->orderBy('domicile_city')->pluck('domicile_city');
+    
+    // Return table view instead of card view
+    return view('public.members', compact('members', 'families', 'cities'));
+}
 
     public function member(Member $member)
     {
