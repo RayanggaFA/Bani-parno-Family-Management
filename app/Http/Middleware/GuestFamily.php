@@ -1,15 +1,23 @@
 <?php
 namespace App\Http\Middleware;
 
-use Illuminate\Auth\Middleware\Authenticate as Middleware;
+use Closure;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class GuestFamily
 {
-    public function handle($request, $next)
+    /**
+     * Handle an incoming request.
+     * Redirect family yang sudah login ke dashboard mereka
+     */
+    public function handle(Request $request, Closure $next)
     {
         if (Auth::guard('family')->check()) {
-            return redirect()->route('families.show', Auth::guard('family')->user());
+            $family = Auth::guard('family')->user();
+            return redirect()
+                ->route('families.show', $family)
+                ->with('info', 'Anda sudah login sebagai admin keluarga.');
         }
 
         return $next($request);

@@ -10,27 +10,24 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class MemberFormController extends Controller
 {
-    public function create(Family $family)
+    public function create()  // ← FIXED: Hapus parameter Family $family
     {
-        // Admin check using FAMILY GUARD
+        // TETAP ADA: Auth check - harus login dulu!
         if (!Auth::guard('family')->check()) {
             return redirect()->route('auth.login')
                 ->with('error', 'Silakan login sebagai admin keluarga untuk menambah anggota.');
         }
         
-        $authFamily = Auth::guard('family')->user();
+        // AMBIL FAMILY dari user yang sedang login
+        $family = Auth::guard('family')->user();
         
-        // Check if authenticated family can manage this family
-        if ($authFamily->id !== $family->id) {
-            abort(403, 'Anda tidak memiliki akses untuk menambah anggota pada keluarga ini.');
-        }
-        
-        // FIX: Check kolom apa yang ada di members table
+        // Check kolom apa yang ada di members table
         $columns = Schema::getColumnListing('members');
-        \Log::info('Members table columns:', $columns);
+        Log::info('Members table columns:', $columns);
         
         // Determine correct name column
         $orderByColumn = 'id'; // fallback default
@@ -52,6 +49,7 @@ class MemberFormController extends Controller
 
     public function store(Request $request)
     {
+        // TETAP ADA: Auth check
         if (!Auth::guard('family')->check()) {
             return redirect()->route('auth.login')
                 ->with('error', 'Silakan login sebagai admin keluarga.');
@@ -73,6 +71,7 @@ class MemberFormController extends Controller
             'phone' => 'nullable|string|max:20',
             'parent_id' => 'nullable|exists:members,id',
             'notes' => 'nullable|string|max:1000',
+            'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // TAMBAHAN: Support upload foto
         ], [
             'name.required' => 'Nama anggota keluarga wajib diisi.',
             'gender.required' => 'Jenis kelamin wajib dipilih.',
@@ -81,6 +80,8 @@ class MemberFormController extends Controller
             'death_date.after' => 'Tanggal meninggal harus setelah tanggal lahir.',
             'marital_status.required' => 'Status pernikahan wajib dipilih.',
             'parent_id.exists' => 'Orang tua yang dipilih tidak valid.',
+            'profile_photo.image' => 'File harus berupa gambar.',
+            'profile_photo.max' => 'Ukuran foto maksimal 2MB.',
         ]);
 
         if ($validator->fails()) {
@@ -100,6 +101,12 @@ class MemberFormController extends Controller
                 }
             }
 
+            // Handle profile photo upload
+            $profilePhotoPath = null;
+            if ($request->hasFile('profile_photo')) {
+                $profilePhotoPath = $request->file('profile_photo')->store('member-photos', 'public');
+            }
+
             $member = Member::create([
                 'family_id' => $family->id,
                 'name' => $request->name,
@@ -115,16 +122,21 @@ class MemberFormController extends Controller
                 'phone' => $request->phone,
                 'parent_id' => $request->parent_id,
                 'notes' => $request->notes,
+                'profile_photo' => $profilePhotoPath, // TAMBAHAN: Save foto
             ]);
 
-            ActivityLog::create([
-                'family_id' => $family->id,
-                'subject_type' => 'member',
-                'subject_id' => $member->id,
-                'description' => "Anggota keluarga '{$member->name}' berhasil ditambahkan oleh admin {$family->name}",
-                'user_agent' => $request->userAgent(),
-                'ip_address' => $request->ip(),
-            ]);
+            // SIMPLIFIED: Activity log tanpa user_agent/ip_address (sesuai diskusi sebelumnya)
+            try {
+                ActivityLog::create([
+                    'family_id' => $family->id,
+                    'subject_type' => 'member',
+                    'subject_id' => $member->id,
+                    'description' => "Anggota keluarga '{$member->name}' berhasil ditambahkan oleh admin {$family->name}",
+                ]);
+            } catch (\Exception $e) {
+                Log::warning('Activity log creation failed: ' . $e->getMessage());
+                // Don't fail member creation if activity log fails
+            }
 
             DB::commit();
 
@@ -137,12 +149,12 @@ class MemberFormController extends Controller
             Log::error('Member creation error: ' . $e->getMessage());
             
             return redirect()->back()
-                ->withErrors(['error' => 'Terjadi kesalahan saat menambahkan anggota keluarga.'])
+                ->withErrors(['error' => 'Terjadi kesalahan saat menambahkan anggota keluarga: ' . $e->getMessage()])
                 ->withInput();
         }
     }
 
-    public function edit(Member $member)
+     public function edit(Member $member)
     {
         if (!Auth::guard('family')->check()) {
             return redirect()->route('auth.login')
@@ -156,9 +168,21 @@ class MemberFormController extends Controller
             abort(403, 'Anda hanya dapat mengedit anggota keluarga Anda sendiri.');
         }
         
-        $potentialParents = $family->members()->orderBy('full_name')->get();
+        // FIX: Use same logic as create() for determining column name
+        $columns = Schema::getColumnListing('members');
+        $orderByColumn = 'id';
+        if (in_array('name', $columns)) {
+            $orderByColumn = 'name';
+        } elseif (in_array('full_name', $columns)) {
+            $orderByColumn = 'full_name';
+        }
         
-        return view('public.members.edit', compact('member', 'family', 'potentialParents'));
+        $potentialParents = $family->members()
+            ->where('id', '!=', $member->id)
+            ->orderBy($orderByColumn)
+            ->get();
+        
+        return view('public.member-edit', compact('member', 'family', 'potentialParents'));
     }
 
     public function update(Request $request, Member $member)
@@ -187,6 +211,7 @@ class MemberFormController extends Controller
             'phone' => 'nullable|string|max:20',
             'parent_id' => 'nullable|exists:members,id',
             'notes' => 'nullable|string|max:1000',
+            'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -211,20 +236,37 @@ class MemberFormController extends Controller
                 }
             }
 
+            // Handle profile photo upload
+            if ($request->hasFile('profile_photo')) {
+                // Delete old photo if exists
+                if ($member->profile_photo) {
+                    \Storage::disk('public')->delete($member->profile_photo);
+                }
+                $member->profile_photo = $request->file('profile_photo')->store('member-photos', 'public');
+            }
+
             $member->update($request->only([
                 'name', 'nickname', 'gender', 'birth_date', 'birth_place',
                 'death_date', 'death_place', 'marital_status', 'occupation',
                 'address', 'phone', 'parent_id', 'notes'
             ]));
 
-            ActivityLog::create([
-                'family_id' => $family->id,
-                'subject_type' => 'member',
-                'subject_id' => $member->id,
-                'description' => "Data anggota keluarga '{$member->name}' berhasil diperbarui oleh admin {$family->name}",
-                'user_agent' => $request->userAgent(),
-                'ip_address' => $request->ip(),
-            ]);
+            // Update profile photo if uploaded
+            if ($request->hasFile('profile_photo')) {
+                $member->save();
+            }
+
+            // SIMPLIFIED: Activity log
+            try {
+                ActivityLog::create([
+                    'family_id' => $family->id,
+                    'subject_type' => 'member',
+                    'subject_id' => $member->id,
+                    'description' => "Data anggota keluarga '{$member->name}' berhasil diperbarui oleh admin {$family->name}",
+                ]);
+            } catch (\Exception $e) {
+                Log::warning('Activity log update failed: ' . $e->getMessage());
+            }
 
             return redirect()
                 ->route('families.show', $family)
@@ -259,17 +301,25 @@ class MemberFormController extends Controller
                 return redirect()->back()
                     ->with('error', "Tidak dapat menghapus {$memberName} karena masih memiliki anak dalam silsilah keluarga. Hapus atau pindahkan anak-anak terlebih dahulu.");
             }
+
+            // Delete profile photo if exists
+            if ($member->profile_photo) {
+                \Storage::disk('public')->delete($member->profile_photo);
+            }
             
             $member->delete();
 
-            ActivityLog::create([
-                'family_id' => $family->id,
-                'subject_type' => 'member',
-                'subject_id' => null,
-                'description' => "Anggota keluarga '{$memberName}' berhasil dihapus oleh admin {$family->name}",
-                'user_agent' => request()->userAgent(),
-                'ip_address' => request()->ip(),
-            ]);
+            // SIMPLIFIED: Activity log
+            try {
+                ActivityLog::create([
+                    'family_id' => $family->id,
+                    'subject_type' => 'member',
+                    'subject_id' => null,
+                    'description' => "Anggota keluarga '{$memberName}' berhasil dihapus oleh admin {$family->name}",
+                ]);
+            } catch (\Exception $e) {
+                Log::warning('Activity log delete failed: ' . $e->getMessage());
+            }
 
             return redirect()
                 ->route('families.show', $family)

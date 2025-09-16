@@ -305,37 +305,9 @@ class PublicController extends Controller
      * Helper method to get family statistics
      */
     private function getFamilyStatistics(Family $family): array
-    {
-        try {
-            if (!Schema::hasTable('members')) {
-                return [
-                    'total_members' => 0,
-                    'male_members' => 0,
-                    'female_members' => 0,
-                    'married_members' => 0,
-                    'alive_members' => 0,
-                    'recent_activities' => collect([]),
-                ];
-            }
-
-            $stats = [
-                'total_members' => $family->members()->count(),
-                'male_members' => $family->members()->where('gender', 'male')->count(),
-                'female_members' => $family->members()->where('gender', 'female')->count(),
-                'married_members' => $family->members()->where('marital_status', 'married')->count(),
-                'alive_members' => $family->members()->whereNull('death_date')->count(),
-            ];
-
-            if (Schema::hasTable('activity_logs')) {
-                $stats['recent_activities'] = $family->activityLogs()->latest()->limit(5)->get();
-            } else {
-                $stats['recent_activities'] = collect([]);
-            }
-
-            return $stats;
-            
-        } catch (\Exception $e) {
-            \Log::warning('Error getting family statistics: ' . $e->getMessage());
+{
+    try {
+        if (!Schema::hasTable('members')) {
             return [
                 'total_members' => 0,
                 'male_members' => 0,
@@ -345,7 +317,57 @@ class PublicController extends Controller
                 'recent_activities' => collect([]),
             ];
         }
+
+        // Cek kolom yang ada di members table
+        $columns = Schema::getColumnListing('members');
+
+        $stats = [
+            'total_members' => $family->members()->count(),
+        ];
+
+        // Only query columns that exist
+        if (in_array('gender', $columns)) {
+            $stats['male_members'] = $family->members()->where('gender', 'male')->count();
+            $stats['female_members'] = $family->members()->where('gender', 'female')->count();
+        } else {
+            $stats['male_members'] = 0;
+            $stats['female_members'] = 0;
+        }
+
+        // FIX: Cek apakah kolom marital_status ada
+        if (in_array('marital_status', $columns)) {
+            $stats['married_members'] = $family->members()->where('marital_status', 'married')->count();
+        } else {
+            $stats['married_members'] = 0;
+        }
+
+        // FIX: Cek apakah kolom death_date ada
+        if (in_array('death_date', $columns)) {
+            $stats['alive_members'] = $family->members()->whereNull('death_date')->count();
+        } else {
+            $stats['alive_members'] = $stats['total_members']; // Assume all alive
+        }
+
+        if (Schema::hasTable('activity_logs')) {
+            $stats['recent_activities'] = $family->activityLogs()->latest()->limit(5)->get();
+        } else {
+            $stats['recent_activities'] = collect([]);
+        }
+
+        return $stats;
+        
+    } catch (\Exception $e) {
+        \Log::warning('Error getting family statistics: ' . $e->getMessage());
+        return [
+            'total_members' => 0,
+            'male_members' => 0,
+            'female_members' => 0,
+            'married_members' => 0,
+            'alive_members' => 0,
+            'recent_activities' => collect([]),
+        ];
     }
+}
 
     /**
      * Get member level in family tree

@@ -53,7 +53,7 @@ class Kernel extends HttpKernel
      * @var array<string, class-string|string>
      */
     protected $middlewareAliases = [
-        'auth.family' => \App\Http\Middleware\FamilyAuth::class,
+        // STANDARD LARAVEL MIDDLEWARE
         'auth' => \App\Http\Middleware\Authenticate::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,
@@ -64,9 +64,9 @@ class Kernel extends HttpKernel
         'signed' => \App\Http\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+
+        // CUSTOM FAMILY MIDDLEWARE - FIXED (hapus duplikat)
         'auth.family' => \App\Http\Middleware\FamilyAuth::class,
-        'guest.family' => \App\Http\Middleware\RedirectIfFamilyAuthenticated::class,
-        'guest.family' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         'guest.family' => \App\Http\Middleware\GuestFamily::class,
     ];
 }

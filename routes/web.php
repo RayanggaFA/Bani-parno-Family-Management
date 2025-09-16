@@ -43,15 +43,14 @@ Route::get('/family-form', [FamilyFormController::class, 'create'])->name('famil
 
 /*
 |--------------------------------------------------------------------------
-| Members (Anggota)
+| Members (Anggota) - FIXED ORDER
 |--------------------------------------------------------------------------
 */
 Route::prefix('anggota')->name('members.')->group(function () {
-    // Public
+    // Public index
     Route::get('/', [PublicController::class, 'members'])->name('index');
-    Route::get('/{member}', [PublicController::class, 'member'])->name('show');
 
-    // CRUD (auth only)
+    // CRUD (auth only) - PINDAHKAN KE ATAS SEBELUM ROUTE DENGAN PARAMETER
     Route::middleware('auth.family')->group(function () {
         Route::get('/tambah', [MemberFormController::class, 'create'])->name('create');
         Route::post('/', [MemberFormController::class, 'store'])->name('store');
@@ -59,8 +58,20 @@ Route::prefix('anggota')->name('members.')->group(function () {
         Route::put('/{member}', [MemberFormController::class, 'update'])->name('update');
         Route::delete('/{member}', [MemberFormController::class, 'destroy'])->name('destroy');
     });
+    
+    // Public show - PINDAHKAN KE BAWAH SETELAH ROUTE SPESIFIK
+    Route::get('/{member}', [PublicController::class, 'member'])->name('show');
 });
 
+Route::get('/test-method-only', function() {
+    try {
+        // Test tanpa family parameter
+        return "Before calling create method";
+        
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -85,3 +96,16 @@ Route::prefix('auth')->name('auth.')->group(function () {
 */
 Route::get('/riwayat-aktivitas', [PublicController::class, 'activityHistory'])->name('activity.history');
 Route::get('/riwayat-perubahan', [PublicController::class, 'activityHistory'])->name('public.activity_logs');
+
+/*
+|--------------------------------------------------------------------------
+| Debug Routes (Hapus di production)
+|--------------------------------------------------------------------------
+*/
+Route::get('/debug-routes', function() {
+    return [
+        'members_create_url' => route('members.create'),
+        'current_family' => auth('family')->user()?->name,
+        'is_authenticated' => auth('family')->check(),
+    ];
+});

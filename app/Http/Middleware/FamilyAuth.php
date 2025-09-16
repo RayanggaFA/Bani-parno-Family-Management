@@ -19,8 +19,8 @@ class FamilyAuth
     public function handle(Request $request, Closure $next)
     {
         if (!Auth::guard('family')->check()) {
-            // Store intended URL for redirect after login
-            session(['url.intended' => $request->fullUrl()]);
+    return redirect()->route('family.login');
+
             
             return redirect()
                 ->route('auth.login')
