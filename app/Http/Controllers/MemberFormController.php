@@ -58,26 +58,27 @@ class MemberFormController extends Controller
         $family = Auth::guard('family')->user();
         
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'full_name' => 'required|string|max:255',
             'nickname' => 'nullable|string|max:100',
-            'gender' => 'required|in:male,female',
+            'gender' => 'required|in:Laki-laki,Perempuan',
             'birth_date' => 'nullable|date|before:today',
             'birth_place' => 'nullable|string|max:255',
-            'death_date' => 'nullable|date|after:birth_date',
-            'death_place' => 'nullable|string|max:255',
-            'marital_status' => 'required|in:single,married,divorced,widowed',
+            'marital_status' => 'required|in:single,married,divorced,widowed,prefer_not_to_answer',
             'occupation' => 'nullable|string|max:255',
-            'address' => 'nullable|string|max:500',
             'phone' => 'nullable|string|max:20',
+            'domicile_city' => 'required|string|max:255',
             'parent_id' => 'nullable|exists:members,id',
             'notes' => 'nullable|string|max:1000',
+            'ktp_address' => 'required|string|max:500',
+            'domicile_province' => 'required|string|max:255',
+            'generation' => 'required|integer|in:1,2,3,4,5',
+            'current_address' => 'nullable|string|max:500',
             'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // TAMBAHAN: Support upload foto
         ], [
             'name.required' => 'Nama anggota keluarga wajib diisi.',
             'gender.required' => 'Jenis kelamin wajib dipilih.',
             'gender.in' => 'Jenis kelamin harus male atau female.',
             'birth_date.before' => 'Tanggal lahir harus sebelum hari ini.',
-            'death_date.after' => 'Tanggal meninggal harus setelah tanggal lahir.',
             'marital_status.required' => 'Status pernikahan wajib dipilih.',
             'parent_id.exists' => 'Orang tua yang dipilih tidak valid.',
             'profile_photo.image' => 'File harus berupa gambar.',
@@ -109,19 +110,21 @@ class MemberFormController extends Controller
 
             $member = Member::create([
                 'family_id' => $family->id,
-                'name' => $request->name,
+                'full_name' => $request->full_name,
                 'nickname' => $request->nickname,
                 'gender' => $request->gender,
                 'birth_date' => $request->birth_date,
                 'birth_place' => $request->birth_place,
-                'death_date' => $request->death_date,
-                'death_place' => $request->death_place,
                 'marital_status' => $request->marital_status,
                 'occupation' => $request->occupation,
-                'address' => $request->address,
                 'phone' => $request->phone,
                 'parent_id' => $request->parent_id,
+                'domicile_city' => $request->domicile_city,
+                'domicile_province' => $request->domicile_province,
                 'notes' => $request->notes,
+                'ktp_address' => $request->ktp_address,
+                'current_address' => $request->current_address,
+                'generation' => $request->generation,
                 'profile_photo' => $profilePhotoPath, // TAMBAHAN: Save foto
             ]);
 

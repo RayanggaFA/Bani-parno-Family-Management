@@ -59,170 +59,156 @@
             <form method="POST" action="{{ route('members.store') }}" enctype="multipart/form-data" class="space-y-8">
                 @csrf
 
-                <!-- Personal Information Section -->
-                <div class="bg-blue-50 rounded-xl p-6">
-                    <h3 class="text-lg font-semibold text-blue-900 mb-6 flex items-center">
-                        <i class="fas fa-user mr-2"></i>Informasi Pribadi
-                    </h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Full Name -->
-                        <div>
-                            <label for="full_name" class="block text-sm font-medium text-gray-700 mb-2">
-                                Nama Lengkap <span class="text-red-500">*</span>
-                            </label>
-                            <input type="text" id="full_name" name="full_name" value="{{ old('full_name') }}" required
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
-                                   placeholder="Contoh: Ahmad Soekarno">
-                        </div>
 
-                        <!-- Profile Photo -->
-                        <div>
-                            <label for="profile_photo" class="block text-sm font-medium text-gray-700 mb-2">
-                                Foto Profil
-                            </label>
-                            <input type="file" id="profile_photo" name="profile_photo" accept="image/*"
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
-                            <p class="text-sm text-gray-500 mt-1">Format: JPG, PNG, GIF. Maksimal 2MB</p>
-                        </div>
+<!-- Personal Information Section -->
+<div class="bg-blue-50 rounded-xl p-6">
+    <h3 class="text-lg font-semibold text-blue-900 mb-6 flex items-center">
+        <i class="fas fa-user mr-2"></i>Informasi Pribadi
+    </h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Name -->
+        <div>
+            <label for="full_name" class="block text-sm font-medium text-gray-700 mb-2">
+                Nama Lengkap <span class="text-red-500">*</span>
+            </label>
+            <input type="text" id="full_name" name="full_name" value="{{ old('full_name') }}" required
+       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+       placeholder="Contoh: Ahmad Soekarno">
 
-                        <!-- Birth Place -->
-                        <div>
-                            <label for="birth_place" class="block text-sm font-medium text-gray-700 mb-2">
-                                Tempat Lahir <span class="text-red-500">*</span>
-                            </label>
-                            <input type="text" id="birth_place" name="birth_place" value="{{ old('birth_place') }}" required
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
-                                   placeholder="Contoh: Jakarta">
-                        </div>
+        </div>
+        <!-- Nickname -->
+        <div>
+            <label for="nickname" class="block text-sm font-medium text-gray-700 mb-2">
+                Nama Panggilan
+            </label>
+            <input type="text" id="nickname" name="nickname" value="{{ old('nickname') }}"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                   placeholder="Contoh: Karno">
+        </div>
 
-                        <!-- Birth Date -->
-                        <div>
-                            <label for="birth_date" class="block text-sm font-medium text-gray-700 mb-2">
-                                Tanggal Lahir <span class="text-red-500">*</span>
-                            </label>
-                            <input type="date" id="birth_date" name="birth_date" value="{{ old('birth_date') }}" required
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
-                        </div>
+        <!-- Profile Photo -->
+        <div>
+            <label for="profile_photo" class="block text-sm font-medium text-gray-700 mb-2">
+                Foto Profil
+            </label>
+            <input type="file" id="profile_photo" name="profile_photo" accept="image/*"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
+            <p class="text-sm text-gray-500 mt-1">Format: JPG, PNG, GIF. Maksimal 2MB</p>
+        </div>
 
-                        <!-- Gender -->
-                        <div>
-                            <label for="gender" class="block text-sm font-medium text-gray-700 mb-2">
-                                Jenis Kelamin <span class="text-red-500">*</span>
-                            </label>
-                            <select id="gender" name="gender" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
-                                <option value="">Pilih Jenis Kelamin</option>
-                                <option value="Laki-laki" {{ old('gender') == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
-                                <option value="Perempuan" {{ old('gender') == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
-                            </select>
-                        </div>
+        <!-- Birth Place -->
+        <div>
+            <label for="birth_place" class="block text-sm font-medium text-gray-700 mb-2">
+                Tempat Lahir
+            </label>
+            <input type="text" id="birth_place" name="birth_place" value="{{ old('birth_place') }}"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                   placeholder="Contoh: Jakarta">
+        </div>
 
-                        <!-- Status -->
-                        <div>
-                            <label for="status" class="block text-sm font-medium text-gray-700 mb-2">
-                                Status <span class="text-red-500">*</span>
-                            </label>
-                            <select id="status" name="status" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
-                                <option value="">Pilih Status</option>
-                                <option value="Belum Menikah" {{ old('status') == 'Belum Menikah' ? 'selected' : '' }}>Belum Menikah</option>
-                                <option value="Sudah Menikah" {{ old('status') == 'Sudah Menikah' ? 'selected' : '' }}>Sudah Menikah</option>
-                                <option value="Janda/Duda" {{ old('status') == 'Janda/Duda' ? 'selected' : '' }}>Janda/Duda</option>
-                                <option value="Memilih untuk tidak menjawab" {{ old('status') == 'Memilih untuk tidak menjawab' ? 'selected' : '' }}>Memilih untuk tidak menjawab</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+        <!-- Birth Date -->
+        <div>
+            <label for="birth_date" class="block text-sm font-medium text-gray-700 mb-2">
+                Tanggal Lahir
+            </label>
+            <input type="date" id="birth_date" name="birth_date" value="{{ old('birth_date') }}"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
+        </div>
 
-                <!-- Family Position Section -->
-                <div class="bg-green-50 rounded-xl p-6">
-                    <h3 class="text-lg font-semibold text-green-900 mb-6 flex items-center">
-                        <i class="fas fa-sitemap mr-2"></i>Posisi dalam Keluarga
-                    </h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Generation -->
-                        <div>
-                            <label for="generation" class="block text-sm font-medium text-gray-700 mb-2">
-                                Generasi <span class="text-red-500">*</span>
-                            </label>
-                            <select id="generation" name="generation" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
-                                <option value="">Pilih Generasi</option>
-                                <option value="1" {{ old('generation') == '1' ? 'selected' : '' }}>Generasi 1 (Kakek/Nenek)</option>
-                                <option value="2" {{ old('generation') == '2' ? 'selected' : '' }}>Generasi 2 (Ayah/Ibu)</option>
-                                <option value="3" {{ old('generation') == '3' ? 'selected' : '' }}>Generasi 3 (Anak)</option>
-                                <option value="4" {{ old('generation') == '4' ? 'selected' : '' }}>Generasi 4 (Cucu)</option>
-                                <option value="5" {{ old('generation') == '5' ? 'selected' : '' }}>Generasi 5 (Cicit)</option>
-                            </select>
-                        </div>
+        <!-- PERBAIKAN 2: Gender - ubah value ke 'male'/'female' -->
+        <div>
+            <label for="gender" class="block text-sm font-medium text-gray-700 mb-2">
+                Jenis Kelamin <span class="text-red-500">*</span>
+            </label>
+            <select id="gender" name="gender" required
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
+                <option value="">Pilih Jenis Kelamin</option>
+                <option value="Laki-laki" {{ old('gender') == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
+                <option value="Perempuan" {{ old('gender') == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
+            </select>
+        </div>
 
-                        <!-- Parent -->
-                        <div>
-                            <label for="parent_id" class="block text-sm font-medium text-gray-700 mb-2">
-                                Orang Tua (Opsional)
-                            </label>
-                            <select id="parent_id" name="parent_id"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
-                                <option value="">Pilih Orang Tua</option>
-                                @foreach($potentialParents as $parent)
-                                    <option value="{{ $parent->id }}" {{ old('parent_id') == $parent->id ? 'selected' : '' }}>
-                                        {{ $parent->full_name }} (Gen {{ $parent->generation }})
-                                    </option>
-                                @endforeach
-                            </select>
-                            <p class="text-sm text-gray-500 mt-1">Pilih jika anggota ini adalah anak dari salah satu anggota yang sudah ada</p>
-                        </div>
-                    </div>
-                </div>
+        <!-- PERBAIKAN 3: Ubah dari 'status' ke 'marital_status' dengan value yang benar -->
+        <div>
+            <label for="marital_status" class="block text-sm font-medium text-gray-700 mb-2">
+                Status Pernikahan <span class="text-red-500">*</span>
+            </label>
+            <select id="marital_status" name="marital_status" required
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
+                <option value="">Pilih Status Pernikahan</option>
+                <option value="single" {{ old('marital_status') == 'single' ? 'selected' : '' }}>Belum Menikah</option>
+                <option value="married" {{ old('marital_status') == 'married' ? 'selected' : '' }}>Menikah</option>
+                <option value="divorced" {{ old('marital_status') == 'divorced' ? 'selected' : '' }}>Cerai</option>
+                <option value="widowed" {{ old('marital_status') == 'widowed' ? 'selected' : '' }}>Janda/Duda</option>
+                <option value="prefer_not_to_answer" {{ old('marital_status') == 'prefer_not_to_answer' ? 'selected' : '' }}>Memilih untuk tidak menjawab</option>
+            </select>
+        </div>
+    </div>
+</div>
 
-                <!-- Contact Information Section -->
-                <div class="bg-yellow-50 rounded-xl p-6">
-                    <h3 class="text-lg font-semibold text-yellow-900 mb-6 flex items-center">
-                        <i class="fas fa-phone mr-2"></i>Informasi Kontak
-                    </h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Occupation -->
-                        <div>
-                            <label for="occupation" class="block text-sm font-medium text-gray-700 mb-2">
-                                Pekerjaan
-                            </label>
-                            <input type="text" id="occupation" name="occupation" value="{{ old('occupation') }}"
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
-                                   placeholder="Contoh: Pegawai Swasta">
-                        </div>
 
-                        <!-- Phone Number -->
-                        <div>
-                            <label for="phone_number" class="block text-sm font-medium text-gray-700 mb-2">
-                                Nomor Telepon
-                            </label>
-                            <input type="tel" id="phone_number" name="phone_number" value="{{ old('phone_number') }}"
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
-                                   placeholder="Contoh: 08123456789">
-                        </div>
 
-                        <!-- Email -->
-                        <div class="md:col-span-2">
-                            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-                                Email
-                            </label>
-                            <input type="email" id="email" name="email" value="{{ old('email') }}"
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
-                                   placeholder="Contoh: ahmad@email.com">
-                        </div>
-                    </div>
-                </div>
+<!-- Contact Information Section - PERBAIKI FIELD NAMES -->
+<div class="bg-yellow-50 rounded-xl p-6">
+    <h3 class="text-lg font-semibold text-yellow-900 mb-6 flex items-center">
+        <i class="fas fa-phone mr-2"></i>Informasi Kontak
+    </h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Occupation -->
+        <div>
+            <label for="occupation" class="block text-sm font-medium text-gray-700 mb-2">
+                Pekerjaan
+            </label>
+            <input type="text" id="occupation" name="occupation" value="{{ old('occupation') }}"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                   placeholder="Contoh: Pegawai Swasta">
+        </div>
 
-                <!-- Address Information Section -->
-                <div class="bg-red-50 rounded-xl p-6">
-                    <h3 class="text-lg font-semibold text-red-900 mb-6 flex items-center">
-                        <i class="fas fa-map-marker-alt mr-2"></i>Informasi Alamat
-                    </h3>
-                    
-                    <div class="space-y-6">
+        <!-- 'phone_number' ke 'phone' -->
+        <div>
+            <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
+                Nomor Telepon
+            </label>
+            <input type="tel" id="phone" name="phone" value="{{ old('phone') }}"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                   placeholder="Contoh: 08123456789">
+        </div>
+    </div>
+</div>
+
+<!-- Address Information Section  -->
+<div class="bg-red-50 rounded-xl p-6">
+    <h3 class="text-lg font-semibold text-red-900 mb-6 flex items-center">
+        <i class="fas fa-map-marker-alt mr-2"></i>Informasi Alamat
+    </h3>
+
+
+    <!-- Alamat KTP -->
+    <div>
+        <label for="ktp_address" class="block text-sm font-medium text-gray-700 mb-2">
+            Alamat KTP <span class="text-red-500">*</span>
+        </label>
+        <textarea id="ktp_address" name="ktp_address" rows="4" required
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                  placeholder="Contoh: Jl. Merdeka No. 10, Kota Lama">{{ old('ktp_address') }}</textarea>
+    </div>
+</div>
+
+<!-- Alamat Saat Ini (Current Address) -->
+    <div>
+        <label for="current_address" class="block text-sm font-medium text-gray-700 mb-2">
+            Alamat Saat Ini
+        </label>
+        <textarea id="current_address" name="current_address" rows="4"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                  placeholder="Alamat saat ini (jika berbeda dari KTP)">{{ old('current_address') }}</textarea>
+    </div>
+</div>
+
+
+<div class="space-y-6">
                         <!-- Domicile -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
@@ -244,31 +230,59 @@
                             </div>
                         </div>
 
-                        <!-- KTP Address -->
+<!-- Additional Information -->
+<div class="bg-gray-50 rounded-xl p-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+        <i class="fas fa-info-circle mr-2"></i>Informasi Tambahan
+    </h3>
+    
+    <div class="grid grid-cols-1 gap-6">
+        <!-- Parent Selection -->
+        <div>
+            <label for="parent_id" class="block text-sm font-medium text-gray-700 mb-2">
+                Orang Tua (Opsional)
+            </label>
+            <select id="parent_id" name="parent_id"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
+                <option value="">Pilih Orang Tua</option>
+                @if(isset($potentialParents))
+                    @foreach($potentialParents as $parent)
+                        <option value="{{ $parent->id }}" {{ old('parent_id') == $parent->id ? 'selected' : '' }}>
+                            {{ $parent->name }}
+                        </option>
+                    @endforeach
+                @endif
+            </select>
+            <p class="text-sm text-gray-500 mt-1">Pilih jika anggota ini adalah anak dari salah satu anggota yang sudah ada</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Generation -->
                         <div>
-                            <label for="ktp_address" class="block text-sm font-medium text-gray-700 mb-2">
-                                Alamat KTP <span class="text-red-500">*</span>
+                            <label for="generation" class="block text-sm font-medium text-gray-700 mb-2">
+                                Generasi <span class="text-red-500">*</span>
                             </label>
-                            <textarea id="ktp_address" name="ktp_address" rows="3" required
-                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
-                                      placeholder="Alamat sesuai KTP">{{ old('ktp_address') }}</textarea>
+                            <select id="generation" name="generation" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
+                                <option value="">Pilih Generasi</option>
+                                <option value="1" {{ old('generation') == '1' ? 'selected' : '' }}>Generasi 1 (Kakek/Nenek)</option>
+                                <option value="2" {{ old('generation') == '2' ? 'selected' : '' }}>Generasi 2 (Ayah/Ibu)</option>
+                                <option value="3" {{ old('generation') == '3' ? 'selected' : '' }}>Generasi 3 (Anak)</option>
+                                <option value="4" {{ old('generation') == '4' ? 'selected' : '' }}>Generasi 4 (Cucu)</option>
+                                <option value="5" {{ old('generation') == '5' ? 'selected' : '' }}>Generasi 5 (Cicit)</option>
+                            </select>
                         </div>
 
-                        <!-- Current Address -->
-                        <div>
-                            <label for="current_address" class="block text-sm font-medium text-gray-700 mb-2">
-                                Alamat Sekarang <span class="text-red-500">*</span>
-                            </label>
-                            <div class="flex items-center mb-2">
-                                <input type="checkbox" id="same_address" class="mr-2">
-                                <label for="same_address" class="text-sm text-gray-600">Sama dengan alamat KTP</label>
-                            </div>
-                            <textarea id="current_address" name="current_address" rows="3" required
-                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
-                                      placeholder="Alamat tempat tinggal sekarang">{{ old('current_address') }}</textarea>
-                        </div>
-                    </div>
-                </div>
+        <!-- Notes -->
+        <div>
+            <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">
+                Catatan
+            </label>
+            <textarea id="notes" name="notes" rows="3"
+                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                      placeholder="Catatan tambahan tentang anggota keluarga">{{ old('notes') }}</textarea>
+        </div>
+    </div>
+</div>
 
                 <!-- Action Buttons -->
                 <div class="flex space-x-4 pt-6">
