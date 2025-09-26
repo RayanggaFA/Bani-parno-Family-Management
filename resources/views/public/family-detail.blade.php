@@ -29,7 +29,7 @@
                     <p class="text-lg text-indigo-100 leading-relaxed mb-6">{{ $family->description }}</p>
                 @endif
                 
-                <!-- Family Stats - FIXED WITH ACTUAL DATABASE COLUMNS -->
+                <!-- Family Stats -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 text-center">
                         <div class="text-2xl font-bold">{{ $stats['total_members'] ?? 0 }}</div>
@@ -50,34 +50,46 @@
                 </div>
             </div>
             
-            <!-- Admin Actions Panel -->
-            @if($isAdmin)
-                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 min-w-80">
-                    <h3 class="text-xl font-bold text-white mb-4 flex items-center">
-                        <i class="fas fa-user-shield mr-2"></i>
-                        Panel Admin
-                    </h3>
-                    <div class="space-y-3">
-                        <a href="{{ route('families.edit', $family) }}" 
-                           class="w-full bg-white/20 hover:bg-white/30 text-white font-medium py-3 px-4 rounded-lg transition flex items-center justify-center">
-                            <i class="fas fa-edit mr-2"></i>
-                            Edit Keluarga
-                        </a>
-                        <a href="{{ route('members.create') }}" 
-                           class="w-full bg-green-500/20 hover:bg-green-500/30 text-white font-medium py-3 px-4 rounded-lg transition flex items-center justify-center">
-                            <i class="fas fa-user-plus mr-2"></i>
-                            Tambah Anggota
-                        </a>
-                        @if($stats['total_members'] > 0)
-                            <a href="{{ route('families.tree', $family) }}" 
-                               class="w-full bg-purple-500/20 hover:bg-purple-500/30 text-white font-medium py-3 px-4 rounded-lg transition flex items-center justify-center">
-                                <i class="fas fa-sitemap mr-2"></i>
-                                Pohon Keluarga
+            <!-- Admin Actions Panel - FIXED AUTH -->
+            @auth('family')
+                @if($isAdmin)
+                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 min-w-80">
+                        <h3 class="text-xl font-bold text-white mb-4 flex items-center">
+                            <i class="fas fa-user-shield mr-2"></i>
+                            Panel Admin
+                        </h3>
+                        <div class="space-y-3">
+                            <a href="{{ route('families.edit', $family) }}" 
+                               class="w-full bg-white/20 hover:bg-white/30 text-white font-medium py-3 px-4 rounded-lg transition flex items-center justify-center">
+                                <i class="fas fa-edit mr-2"></i>
+                                Edit Keluarga
                             </a>
-                        @endif
+                            <a href="{{ route('members.create') }}" 
+                               class="w-full bg-green-500/20 hover:bg-green-500/30 text-white font-medium py-3 px-4 rounded-lg transition flex items-center justify-center">
+                                <i class="fas fa-user-plus mr-2"></i>
+                                Tambah Anggota
+                            </a>
+                            @if($stats['total_members'] > 0)
+                                <a href="{{ route('families.tree', $family) }}" 
+                                   class="w-full bg-purple-500/20 hover:bg-purple-500/30 text-white font-medium py-3 px-4 rounded-lg transition flex items-center justify-center">
+                                    <i class="fas fa-sitemap mr-2"></i>
+                                    Pohon Keluarga
+                                </a>
+                            @endif
+                            
+                            <!-- Logout -->
+                            <form action="{{ route('auth.logout') }}" method="POST" class="w-full">
+                                @csrf
+                                <button type="submit"
+                                    class="w-full bg-red-500/20 hover:bg-red-500/30 text-white font-medium py-3 px-4 rounded-lg transition flex items-center justify-center">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>
+                                    Logout
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            @endif
+                @endif
+            @endauth
         </div>
     </div>
 </section>
@@ -110,13 +122,18 @@
                 <p class="text-gray-600">Kelola semua anggota dalam keluarga {{ $family->name }}</p>
             </div>
             
-            @if($isAdmin)
-                <a href="{{ route('members.create') }}" 
-                   class="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition flex items-center shadow-lg transform hover:scale-105">
-                    <i class="fas fa-user-plus mr-2"></i>
-                    Tambah Anggota
-                </a>
-            @endif
+            <!-- FIXED: Tombol Tambah Anggota dengan auth yang benar -->
+            @auth('family')
+                @if($isAdmin)
+                    <div class="flex justify-center sm:justify-end">
+                        <a href="{{ route('members.create') }}" 
+                           class="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition flex items-center shadow-lg transform hover:scale-105">
+                            <i class="fas fa-user-plus mr-2"></i>
+                            Tambah Anggota
+                        </a>
+                    </div>
+                @endif
+            @endauth
         </div>
 
         @if($allMembers->count() > 0)
@@ -126,18 +143,52 @@
                     <div class="member-card bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300 transform hover:-translate-y-1 border border-gray-100">
                         <!-- Member Avatar/Photo -->
                         <div class="relative">
-                            <div class="w-full h-48 bg-gradient-to-br from-{{ $member->gender === 'male' ? 'blue' : 'pink' }}-200 to-{{ $member->gender === 'male' ? 'indigo' : 'purple' }}-300 flex items-center justify-center">
-                                <i class="fas fa-user text-{{ $member->gender === 'male' ? 'blue' : 'pink' }}-600 text-6xl opacity-50"></i>
-                            </div>
+                            @php
+                                // Debug: tampilkan nilai gender (hapus setelah fix)
+                                $genderValue = strtolower(trim($member->gender ?? ''));
+                                
+                                // Deteksi laki-laki dengan berbagai variasi
+                                $isLaki = in_array($genderValue, ['male', 'laki-laki', 'laki', 'l', 'm', '1', 'pria']);
+                                
+                                $bgGradient = $isLaki ? 'from-blue-200 to-indigo-300' : 'from-pink-200 to-purple-300';
+                                $iconColor = $isLaki ? 'blue' : 'pink';
+                                $badgeColor = $isLaki ? 'bg-blue-500' : 'bg-pink-500';
+                                $genderIcon = $isLaki ? 'mars' : 'venus';
+                            @endphp
+                            
+                            @if($member->profile_photo)
+                                <!-- User Uploaded Photo -->
+                                <div class="w-full h-48 overflow-hidden bg-gray-100">
+                                    <img src="{{ $member->profile_photo_url }}" 
+                                         alt="{{ $member->full_name }}"
+                                         class="w-full h-full object-cover object-center"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <!-- Fallback if image fails to load -->
+                                    <div class="w-full h-48 bg-gradient-to-br {{ $bgGradient }} flex items-center justify-center" style="display: none;">
+                                        <i class="fas fa-user text-{{ $iconColor }}-600 text-6xl opacity-50"></i>
+                                    </div>
+                                </div>
+                            @else
+                                <!-- Default Avatar -->
+                                <div class="w-full h-48 bg-gradient-to-br {{ $bgGradient }} flex items-center justify-center">
+                                    <i class="fas fa-user text-{{ $iconColor }}-600 text-6xl opacity-50"></i>
+                                </div>
+                            @endif
                             
                             <!-- Gender Badge -->
-                            <div class="absolute top-3 right-3 w-8 h-8 {{ $member->gender === 'male' ? 'bg-blue-500' : 'bg-pink-500' }} rounded-full flex items-center justify-center">
-                                <i class="fas fa-{{ $member->gender === 'male' ? 'male' : 'female' }} text-white text-sm"></i>
+                            <div class="absolute top-3 right-3 w-8 h-8 {{ $badgeColor }} rounded-full flex items-center justify-center shadow-lg">
+                                <i class="fas fa-{{ $genderIcon }} text-white text-sm"></i>
                             </div>
                             
-                            <!-- Status Badge -->
-                            @if(!$member->is_alive)
-                                <div class="absolute top-3 left-3 bg-gray-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                            <!-- Photo Upload Indicator -->
+                            
+                            <!-- Status Badge - Only show if actually dead -->
+                            @if(isset($member->is_alive) && !$member->is_alive)
+                                <div class="absolute bottom-3 left-3 bg-gray-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                                    <i class="fas fa-cross mr-1"></i>Almarhum
+                                </div>
+                            @elseif(isset($member->death_date) && $member->death_date)
+                                <div class="absolute bottom-3 left-3 bg-gray-600 text-white text-xs font-bold px-2 py-1 rounded-full">
                                     <i class="fas fa-cross mr-1"></i>Almarhum
                                 </div>
                             @endif
@@ -149,7 +200,7 @@
                                 <h3 class="text-lg font-bold text-gray-900 mb-1">{{ $member->full_name }}</h3>
                                 @if($member->parent)
                                     <p class="text-sm text-blue-600">
-                                        <i class="fas fa-link mr-1"></i>Anak dari {{ $member->parent->name }}
+                                        <i class="fas fa-link mr-1"></i>Anak dari {{ $member->parent->full_name }}
                                     </p>
                                 @endif
                             </div>
@@ -159,7 +210,7 @@
                                     <p class="flex items-center">
                                         <i class="fas fa-birthday-cake mr-2 w-4 text-orange-500"></i>
                                         @if($member->birth_place){{ $member->birth_place }}, @endif
-                                        {{ $member->birth_date->format('d M Y') }}
+                                        {{ \Carbon\Carbon::parse($member->birth_date)->format('d M Y') }}
                                         @if($member->age) ({{ $member->age }} th) @endif
                                     </p>
                                 @endif
@@ -185,7 +236,7 @@
                                     </p>
                                 @endif
                                 
-                                @if($member->children->count() > 0)
+                                @if($member->children && $member->children->count() > 0)
                                     <p class="flex items-center text-indigo-600">
                                         <i class="fas fa-users mr-2 w-4"></i>
                                         {{ $member->children->count() }} anak
@@ -202,11 +253,15 @@
                                     @else bg-gray-100 text-gray-800
                                     @endif">
                                     <i class="fas fa-heart mr-1"></i>
-                                    {{ $member->marital_status_text }}
+                                    @if($member->marital_status === 'married') Menikah
+                                    @elseif($member->marital_status === 'single') Belum Menikah
+                                    @elseif($member->marital_status === 'widowed') Janda/Duda
+                                    @else {{ ucfirst($member->marital_status) }}
+                                    @endif
                                 </span>
                             </div>
                             
-                            <!-- CRUD Actions -->
+                            <!-- CRUD Actions - FIXED AUTH -->
                             <div class="flex gap-2">
                                 <!-- View Detail -->
                                 <a href="{{ route('members.show', $member) }}" 
@@ -214,58 +269,62 @@
                                     <i class="fas fa-eye mr-1"></i>Detail
                                 </a>
                                 
-                                @if($isAdmin)
-                                    <!-- Edit Member -->
-                                    <a href="{{ route('members.edit', $member) }}" 
-                                       class="bg-green-600 hover:bg-green-700 text-white py-2 px-3 rounded-lg transition text-sm font-medium"
-                                       title="Edit {{ $member->name }}">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    
-                                    <!-- Delete Member -->
-                                    <button onclick="confirmDelete('{{ $member->name }}', '{{ route('members.destroy', $member) }}')"
-                                            class="bg-red-600 hover:bg-red-700 text-white py-2 px-3 rounded-lg transition text-sm font-medium"
-                                            title="Hapus {{ $member->name }}">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                @endif
+                                @auth('family')
+                                    @if($isAdmin)
+                                        <!-- Edit Member -->
+                                        <a href="{{ route('members.edit', $member) }}" 
+                                           class="bg-green-600 hover:bg-green-700 text-white py-2 px-3 rounded-lg transition text-sm font-medium"
+                                           title="Edit {{ $member->full_name }}">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        
+                                        <!-- Delete Member -->
+                                        <button onclick="confirmDelete('{{ $member->full_name }}', '{{ route('members.destroy', $member) }}')"
+                                                class="bg-red-600 hover:bg-red-700 text-white py-2 px-3 rounded-lg transition text-sm font-medium"
+                                                title="Hapus {{ $member->full_name }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    @endif
+                                @endauth
                             </div>
                         </div>
                     </div>
                 @endforeach
             </div>
             
-            <!-- Quick Stats -->
-            @if($isAdmin)
-                <div class="mt-12 bg-gray-50 rounded-2xl p-8">
-                    <h3 class="text-xl font-bold text-gray-900 mb-6 text-center">Statistik Detail Keluarga</h3>
-                    <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
-                        <div class="text-center">
-                            <div class="text-2xl font-bold text-blue-600">{{ $stats['male_members'] }}</div>
-                            <div class="text-sm text-gray-600">Laki-laki</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-2xl font-bold text-pink-600">{{ $stats['female_members'] }}</div>
-                            <div class="text-sm text-gray-600">Perempuan</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-2xl font-bold text-green-600">{{ $stats['married_members'] }}</div>
-                            <div class="text-sm text-gray-600">Menikah</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-2xl font-bold text-orange-600">{{ $stats['alive_members'] }}</div>
-                            <div class="text-sm text-gray-600">Masih Hidup</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-2xl font-bold text-indigo-600">{{ $allMembers->whereNull('parent_id')->count() }}</div>
-                            <div class="text-sm text-gray-600">Generasi Pertama</div>
+            <!-- Quick Stats - FIXED AUTH -->
+            @auth('family')
+                @if($isAdmin)
+                    <div class="mt-12 bg-gray-50 rounded-2xl p-8">
+                        <h3 class="text-xl font-bold text-gray-900 mb-6 text-center">Statistik Detail Keluarga</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-blue-600">{{ $stats['male_members'] }}</div>
+                                <div class="text-sm text-gray-600">Laki-laki</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-pink-600">{{ $stats['female_members'] }}</div>
+                                <div class="text-sm text-gray-600">Perempuan</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-green-600">{{ $stats['married_members'] }}</div>
+                                <div class="text-sm text-gray-600">Menikah</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-orange-600">{{ $stats['alive_members'] ?? $stats['total_members'] }}</div>
+                                <div class="text-sm text-gray-600">Masih Hidup</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-indigo-600">{{ $allMembers->whereNull('parent_id')->count() }}</div>
+                                <div class="text-sm text-gray-600">Generasi Pertama</div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            @endif
+                @endif
+            @endauth
             
         @else
-            <!-- Empty State -->
+            <!-- Empty State - FIXED AUTH -->
             <div class="text-center py-16">
                 <div class="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
                     <i class="fas fa-user-friends text-gray-400 text-4xl"></i>
@@ -273,33 +332,39 @@
                 <h3 class="text-2xl font-semibold text-gray-900 mb-4">Belum Ada Anggota Keluarga</h3>
                 <p class="text-gray-600 mb-8 max-w-md mx-auto">
                     Keluarga ini belum memiliki anggota yang terdaftar. 
-                        Mulai tambahkan anggota keluarga Anda sekarang untuk membangun silsilah.
+                    @auth('family')
+                        @if($isAdmin)
+                            Mulai tambahkan anggota keluarga Anda sekarang untuk membangun silsilah.
+                        @else
+                            Hubungi admin keluarga untuk menambahkan anggota.
+                        @endif
+                    @else
+                        Login sebagai admin keluarga untuk menambahkan anggota.
+                    @endauth
                 </p>
-                    <a href="{{ route('members.create') }}" 
-                       class="bg-green-600 hover:bg-green-700 text-white py-4 px-8 rounded-xl transition font-medium shadow-lg transform hover:scale-105">
-                        <i class="fas fa-user-plus mr-2"></i>
-                        Tambah Anggota Pertama
+                
+                @auth('family')
+                    @if($isAdmin)
+                        <a href="{{ route('members.create') }}" 
+                           class="bg-green-600 hover:bg-green-700 text-white py-4 px-8 rounded-xl transition font-medium shadow-lg transform hover:scale-105">
+                            <i class="fas fa-user-plus mr-2"></i>
+                            Tambah Anggota Pertama
+                        </a>
+                    @endif
+                @else
+                    <a href="{{ route('auth.login') }}" 
+                       class="bg-blue-600 hover:bg-blue-700 text-white py-4 px-8 rounded-xl transition font-medium shadow-lg transform hover:scale-105">
+                        <i class="fas fa-sign-in-alt mr-2"></i>
+                        Login untuk Mengelola
                     </a>
+                @endauth
             </div>
         @endif
     </div>
 </section>
 
-            <!-- Logout -->
-            <form action="{{ route('auth.logout') }}" method="POST" class="w-full">
-                @csrf
-                <button type="submit"
-                    class="w-full bg-red-500/20 hover:bg-red-500/30 text-white font-medium py-3 px-4 rounded-lg transition flex items-center justify-center">
-                    <i class="fas fa-sign-out-alt mr-2"></i>
-                    Logout
-                </button>
-            </form>
-        </div>
-    </div>
-
-
 <!-- Recent Activities Section -->
-@if($stats['recent_activities']->count() > 0)
+@if(isset($stats['recent_activities']) && $stats['recent_activities']->count() > 0)
     <section class="py-16 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex items-center justify-between mb-8">

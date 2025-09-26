@@ -1,16 +1,15 @@
-<!-- resources/views/public/member-edit.blade.php - CREATE NEW FILE -->
 @extends('layouts.app')
 
 @section('title', 'Edit Anggota - ' . $member->full_name)
 
 @section('content')
 <!-- Page Header -->
-<section class="bg-gradient-to-r from-teal-600 to-blue-600 text-white py-16">
+<section class="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-16">
     <div class="max-w-4xl mx-auto px-4">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-4xl font-bold mb-4">Edit Data Anggota</h1>
-                <p class="text-xl text-teal-100">{{ $member->full_name }}</p>
+                <h1 class="text-4xl font-bold mb-4">Edit Anggota Keluarga</h1>
+                <p class="text-xl text-purple-100">{{ $member->full_name }}</p>
             </div>
             <div class="hidden md:block">
                 <div class="w-20 h-20 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
@@ -37,7 +36,7 @@
             <!-- Current Photo Display -->
             @if($member->profile_photo)
                 <div class="text-center mb-8">
-                    <div class="w-24 h-24 mx-auto rounded-full overflow-hidden border-4 border-teal-200">
+                    <div class="w-24 h-24 mx-auto rounded-full overflow-hidden border-4 border-purple-200">
                         <img src="{{ asset('storage/' . $member->profile_photo) }}" 
                              alt="{{ $member->full_name }}"
                              class="w-full h-full object-cover">
@@ -61,6 +60,12 @@
                 </div>
             @endif
 
+            <!-- Form Header -->
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Data Anggota Keluarga</h2>
+                <p class="text-gray-600">Perbarui informasi anggota keluarga dengan lengkap dan benar</p>
+            </div>
+
             <!-- Edit Form -->
             <form method="POST" action="{{ route('members.update', $member) }}" enctype="multipart/form-data" class="space-y-8">
                 @csrf
@@ -79,7 +84,18 @@
                                 Nama Lengkap <span class="text-red-500">*</span>
                             </label>
                             <input type="text" id="full_name" name="full_name" value="{{ old('full_name', $member->full_name) }}" required
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition">
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                                   placeholder="Contoh: Ahmad Soekarno">
+                        </div>
+
+                        <!-- Nickname -->
+                        <div>
+                            <label for="nickname" class="block text-sm font-medium text-gray-700 mb-2">
+                                Nama Panggilan
+                            </label>
+                            <input type="text" id="nickname" name="nickname" value="{{ old('nickname', $member->nickname) }}"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                                   placeholder="Contoh: Karno">
                         </div>
 
                         <!-- Profile Photo -->
@@ -88,26 +104,27 @@
                                 Foto Profil Baru
                             </label>
                             <input type="file" id="profile_photo" name="profile_photo" accept="image/*"
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition">
-                            <p class="text-sm text-gray-500 mt-1">Kosongkan jika tidak ingin mengubah foto</p>
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
+                            <p class="text-sm text-gray-500 mt-1">Kosongkan jika tidak ingin mengubah foto (JPG, PNG, GIF, max 2MB)</p>
                         </div>
 
                         <!-- Birth Place -->
                         <div>
                             <label for="birth_place" class="block text-sm font-medium text-gray-700 mb-2">
-                                Tempat Lahir <span class="text-red-500">*</span>
+                                Tempat Lahir
                             </label>
-                            <input type="text" id="birth_place" name="birth_place" value="{{ old('birth_place', $member->birth_place) }}" required
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition">
+                            <input type="text" id="birth_place" name="birth_place" value="{{ old('birth_place', $member->birth_place) }}"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                                   placeholder="Contoh: Jakarta">
                         </div>
 
                         <!-- Birth Date -->
                         <div>
                             <label for="birth_date" class="block text-sm font-medium text-gray-700 mb-2">
-                                Tanggal Lahir <span class="text-red-500">*</span>
+                                Tanggal Lahir
                             </label>
-                            <input type="date" id="birth_date" name="birth_date" value="{{ old('birth_date', $member->birth_date) }}" required
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition">
+                            <input type="date" id="birth_date" name="birth_date" value="{{ old('birth_date', $member->birth_date ? $member->birth_date->format('Y-m-d') : old('birth_date')) }}"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
                         </div>
 
                         <!-- Gender -->
@@ -116,33 +133,34 @@
                                 Jenis Kelamin <span class="text-red-500">*</span>
                             </label>
                             <select id="gender" name="gender" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition">
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
                                 <option value="">Pilih Jenis Kelamin</option>
                                 <option value="Laki-laki" {{ old('gender', $member->gender) == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
                                 <option value="Perempuan" {{ old('gender', $member->gender) == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
                             </select>
                         </div>
 
-                        <!-- Status -->
+                        <!-- Marital Status -->
                         <div>
-                            <label for="status" class="block text-sm font-medium text-gray-700 mb-2">
-                                Status <span class="text-red-500">*</span>
+                            <label for="marital_status" class="block text-sm font-medium text-gray-700 mb-2">
+                                Status Pernikahan <span class="text-red-500">*</span>
                             </label>
-                            <select id="status" name="status" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition">
-                                <option value="">Pilih Status</option>
-                                <option value="Belum Menikah" {{ old('status', $member->status) == 'Belum Menikah' ? 'selected' : '' }}>Belum Menikah</option>
-                                <option value="Sudah Menikah" {{ old('status', $member->status) == 'Sudah Menikah' ? 'selected' : '' }}>Sudah Menikah</option>
-                                <option value="Janda/Duda" {{ old('status', $member->status) == 'Janda/Duda' ? 'selected' : '' }}>Janda/Duda</option>
-                                <option value="Memilih untuk tidak menjawab" {{ old('status', $member->status) == 'Memilih untuk tidak menjawab' ? 'selected' : '' }}>Memilih untuk tidak menjawab</option>
+                            <select id="marital_status" name="marital_status" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
+                                <option value="">Pilih Status Pernikahan</option>
+                                <option value="single" {{ old('marital_status', $member->marital_status) == 'single' ? 'selected' : '' }}>Belum Menikah</option>
+                                <option value="married" {{ old('marital_status', $member->marital_status) == 'married' ? 'selected' : '' }}>Menikah</option>
+                                <option value="divorced" {{ old('marital_status', $member->marital_status) == 'divorced' ? 'selected' : '' }}>Cerai</option>
+                                <option value="widowed" {{ old('marital_status', $member->marital_status) == 'widowed' ? 'selected' : '' }}>Janda/Duda</option>
+                                <option value="prefer_not_to_answer" {{ old('marital_status', $member->marital_status) == 'prefer_not_to_answer' ? 'selected' : '' }}>Memilih untuk tidak menjawab</option>
                             </select>
                         </div>
                     </div>
                 </div>
 
                 <!-- Family Position Section -->
-                <div class="bg-green-50 rounded-xl p-6">
-                    <h3 class="text-lg font-semibold text-green-900 mb-6 flex items-center">
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
                         <i class="fas fa-sitemap mr-2"></i>Posisi dalam Keluarga
                     </h3>
                     
@@ -153,7 +171,7 @@
                                 Generasi <span class="text-red-500">*</span>
                             </label>
                             <select id="generation" name="generation" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition">
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
                                 <option value="">Pilih Generasi</option>
                                 <option value="1" {{ old('generation', $member->generation) == '1' ? 'selected' : '' }}>Generasi 1 (Kakek/Nenek)</option>
                                 <option value="2" {{ old('generation', $member->generation) == '2' ? 'selected' : '' }}>Generasi 2 (Ayah/Ibu)</option>
@@ -169,7 +187,7 @@
                                 Orang Tua (Opsional)
                             </label>
                             <select id="parent_id" name="parent_id"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition">
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
                                 <option value="">Pilih Orang Tua</option>
                                 @foreach($potentialParents as $parent)
                                     <option value="{{ $parent->id }}" {{ old('parent_id', $member->parent_id) == $parent->id ? 'selected' : '' }}>
@@ -194,16 +212,18 @@
                                 Pekerjaan
                             </label>
                             <input type="text" id="occupation" name="occupation" value="{{ old('occupation', $member->occupation) }}"
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition">
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                                   placeholder="Contoh: Pegawai Swasta">
                         </div>
 
-                        <!-- Phone Number -->
+                        <!-- Phone -->
                         <div>
-                            <label for="phone_number" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
                                 Nomor Telepon
                             </label>
-                            <input type="tel" id="phone_number" name="phone_number" value="{{ old('phone_number', $member->phone_number) }}"
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition">
+                            <input type="tel" id="phone" name="phone" value="{{ old('phone', $member->phone) }}"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                                   placeholder="Contoh: 08123456789">
                         </div>
 
                         <!-- Email -->
@@ -212,7 +232,8 @@
                                 Email
                             </label>
                             <input type="email" id="email" name="email" value="{{ old('email', $member->email) }}"
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition">
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                                   placeholder="contoh@domain.com">
                         </div>
                     </div>
                 </div>
@@ -231,7 +252,8 @@
                                     Kota Domisili <span class="text-red-500">*</span>
                                 </label>
                                 <input type="text" id="domicile_city" name="domicile_city" value="{{ old('domicile_city', $member->domicile_city) }}" required
-                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition">
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                                       placeholder="Contoh: Jakarta Selatan">
                             </div>
 
                             <div>
@@ -239,7 +261,8 @@
                                     Provinsi Domisili <span class="text-red-500">*</span>
                                 </label>
                                 <input type="text" id="domicile_province" name="domicile_province" value="{{ old('domicile_province', $member->domicile_province) }}" required
-                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition">
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                                       placeholder="Contoh: DKI Jakarta">
                             </div>
                         </div>
 
@@ -249,7 +272,8 @@
                                 Alamat KTP <span class="text-red-500">*</span>
                             </label>
                             <textarea id="ktp_address" name="ktp_address" rows="3" required
-                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition">{{ old('ktp_address', $member->ktp_address) }}</textarea>
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                                      placeholder="Contoh: Jl. Merdeka No. 10, Kota Lama">{{ old('ktp_address', $member->ktp_address) }}</textarea>
                         </div>
 
                         <!-- Current Address -->
@@ -262,7 +286,27 @@
                                 <label for="same_address" class="text-sm text-gray-600">Sama dengan alamat KTP</label>
                             </div>
                             <textarea id="current_address" name="current_address" rows="3" required
-                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition">{{ old('current_address', $member->current_address) }}</textarea>
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                                      placeholder="Alamat saat ini">{{ old('current_address', $member->current_address) }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Information -->
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+                        <i class="fas fa-info-circle mr-2"></i>Informasi Tambahan
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 gap-6">
+                        <!-- Notes -->
+                        <div>
+                            <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">
+                                Catatan
+                            </label>
+                            <textarea id="notes" name="notes" rows="3"
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                                      placeholder="Catatan tambahan tentang anggota keluarga">{{ old('notes', $member->notes) }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -270,7 +314,7 @@
                 <!-- Action Buttons -->
                 <div class="flex space-x-4 pt-6">
                     <button type="submit" 
-                            class="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-semibold py-4 px-6 rounded-lg transition duration-200">
+                            class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-4 px-6 rounded-lg transition duration-200">
                         <i class="fas fa-save mr-2"></i>Simpan Perubahan
                     </button>
                     <a href="{{ route('members.show', $member) }}" 
@@ -336,40 +380,47 @@ document.addEventListener('DOMContentLoaded', function() {
     const ktpAddressTextarea = document.getElementById('ktp_address');
     const currentAddressTextarea = document.getElementById('current_address');
     
-    sameAddressCheckbox.addEventListener('change', function() {
-        if (this.checked) {
-            currentAddressTextarea.value = ktpAddressTextarea.value;
-        }
-    });
+    if (sameAddressCheckbox) {
+        sameAddressCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                currentAddressTextarea.value = ktpAddressTextarea.value;
+            }
+        });
+    }
     
-    ktpAddressTextarea.addEventListener('input', function() {
-        if (sameAddressCheckbox.checked) {
-            currentAddressTextarea.value = this.value;
-        }
-    });
+    if (ktpAddressTextarea) {
+        ktpAddressTextarea.addEventListener('input', function() {
+            if (sameAddressCheckbox && sameAddressCheckbox.checked) {
+                currentAddressTextarea.value = this.value;
+            }
+        });
+    }
     
     // Photo preview
     const photoInput = document.getElementById('profile_photo');
-    photoInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                let preview = document.getElementById('photo-preview');
-                if (!preview) {
-                    preview = document.createElement('div');
-                    preview.id = 'photo-preview';
-                    preview.className = 'mt-2';
-                    photoInput.parentNode.appendChild(preview);
-                }
-                preview.innerHTML = `
-                    <img src="${e.target.result}" alt="Preview" class="w-20 h-20 object-cover rounded-lg border">
-                    <p class="text-sm text-gray-500 mt-1">Preview foto baru</p>
-                `;
-            };
-            reader.readAsDataURL(file);
-        }
-    });
+    if (photoInput) {
+        photoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Create preview if it doesn't exist
+                    let preview = document.getElementById('photo-preview');
+                    if (!preview) {
+                        preview = document.createElement('div');
+                        preview.id = 'photo-preview';
+                        preview.className = 'mt-2';
+                        photoInput.parentNode.appendChild(preview);
+                    }
+                    preview.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview" class="w-20 h-20 object-cover rounded-lg border">
+                        <p class="text-sm text-gray-500 mt-1">Preview foto baru</p>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
 });
 
 function confirmDelete() {

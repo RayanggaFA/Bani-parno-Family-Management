@@ -80,13 +80,14 @@
                             <div class="text-blue-100 text-sm">{{ $member->gender == 'Laki-laki' ? 'Laki-laki' : 'Perempuan' }}</div>
                         </div>
                     </div>
-
+                    @auth('family') {{-- Tambahkan 'family' guard --}}
                     <!-- Edit Profile Button -->
-                    <button class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-8 py-3 rounded-full transition backdrop-blur-sm border border-white border-opacity-30 z-10 relative">
+                     <a href="{{ route('members.edit', $member) }}"
+                    class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-8 py-3 rounded-full transition backdrop-blur-sm border border-white border-opacity-30 z-10 relative">
                         <i class="fas fa-edit mr-2"></i>Edit Profil
-                    </button>
+                    </a>
                 </div>
-
+                    @endauth
                 <!-- Contact Information Card -->
                 <div class="bg-white rounded-2xl p-6 shadow-lg">
                     <h3 class="flex items-center text-lg font-bold mb-5 text-gray-900">

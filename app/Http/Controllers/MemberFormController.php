@@ -201,21 +201,22 @@ class MemberFormController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'nickname' => 'nullable|string|max:100',
-            'gender' => 'required|in:male,female',
-            'birth_date' => 'nullable|date|before:today',
-            'birth_place' => 'nullable|string|max:255',
-            'death_date' => 'nullable|date|after:birth_date',
-            'death_place' => 'nullable|string|max:255',
-            'marital_status' => 'required|in:single,married,divorced,widowed',
-            'occupation' => 'nullable|string|max:255',
-            'address' => 'nullable|string|max:500',
-            'phone' => 'nullable|string|max:20',
-            'parent_id' => 'nullable|exists:members,id',
-            'notes' => 'nullable|string|max:1000',
-            'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
+    'full_name' => 'required|string|max:255',
+    'nickname' => 'nullable|string|max:100',
+    'gender' => 'required|in:Laki-laki,Perempuan',
+    'birth_date' => 'nullable|date|before:today',
+    'birth_place' => 'nullable|string|max:255',
+    'death_date' => 'nullable|date|after:birth_date',
+    'death_place' => 'nullable|string|max:255',
+    'marital_status' => 'required|in:single,married,divorced,widowed',
+    'occupation' => 'nullable|string|max:255',
+    'address' => 'nullable|string|max:500',
+    'phone' => 'nullable|string|max:20',
+    'parent_id' => 'nullable|exists:members,id',
+    'notes' => 'nullable|string|max:1000',
+    'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+]);
+
 
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
@@ -249,10 +250,11 @@ class MemberFormController extends Controller
             }
 
             $member->update($request->only([
-                'name', 'nickname', 'gender', 'birth_date', 'birth_place',
-                'death_date', 'death_place', 'marital_status', 'occupation',
-                'address', 'phone', 'parent_id', 'notes'
-            ]));
+    'full_name', 'nickname', 'gender', 'birth_date', 'birth_place',
+    'death_date', 'death_place', 'marital_status', 'occupation',
+    'address', 'phone', 'parent_id', 'notes'
+]));
+
 
             // Update profile photo if uploaded
             if ($request->hasFile('profile_photo')) {

@@ -50,7 +50,7 @@ Route::prefix('anggota')->name('members.')->group(function () {
     // Public index
     Route::get('/', [PublicController::class, 'members'])->name('index');
 
-    // CRUD (auth only) - PINDAHKAN KE ATAS SEBELUM ROUTE DENGAN PARAMETER
+    // CRUD (auth only)
     Route::middleware('auth.family')->group(function () {
         Route::get('/tambah', [MemberFormController::class, 'create'])->name('create');
         Route::post('/', [MemberFormController::class, 'store'])->name('store');
