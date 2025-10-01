@@ -322,16 +322,20 @@
                 </div>
             @else
                 <!-- Empty State -->
-                <div class="text-center py-12 md:py-16 px-4">
-                    <div class="w-20 md:w-24 h-20 md:h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-user-friends text-gray-400 text-2xl md:text-3xl"></i>
-                    </div>
-                    <h3 class="text-lg md:text-xl font-semibold text-gray-900 mb-2">Tidak ada anggota ditemukan</h3>
-                    <p class="text-gray-600 mb-4 text-sm md:text-base">Coba sesuaikan filter pencarian Anda atau tambah anggota baru.</p>
-                    <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 md:px-6 py-2 rounded-lg transition text-sm md:text-base">
-                        <i class="fas fa-user-plus mr-2"></i>Tambah Anggota Pertama
-                    </button>
-                </div>
+<div class="text-center py-12 md:py-16 px-4">
+    <div class="w-20 md:w-24 h-20 md:h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-user-friends text-gray-400 text-2xl md:text-3xl"></i>
+    </div>
+    <h3 class="text-lg md:text-xl font-semibold text-gray-900 mb-2">Tidak ada anggota ditemukan</h3>
+    <p class="text-gray-600 mb-4 text-sm md:text-base">Coba sesuaikan filter pencarian Anda atau tambah anggota baru.</p>
+    
+    <a href="{{ route('members.create') }}"
+       class="bg-blue-600 hover:bg-blue-700 text-white px-4 md:px-6 py-2 rounded-lg transition text-sm md:text-base inline-flex items-center">
+        <i class="fas fa-user-plus mr-2"></i>
+        Tambah Anggota Pertama
+    </a>
+</div>
+
             @endif
         </div>
     </div>

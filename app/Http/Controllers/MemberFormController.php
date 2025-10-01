@@ -287,54 +287,55 @@ class MemberFormController extends Controller
     }
 
     public function destroy(Member $member)
-    {
-        if (!Auth::guard('family')->check()) {
-            return redirect()->route('auth.login')->with('error', 'Silakan login sebagai admin keluarga.');
-        }
+{
+    if (!Auth::guard('family')->check()) {
+        return redirect()->route('auth.login')->with('error', 'Silakan login sebagai admin keluarga.');
+    }
+    
+    $family = Auth::guard('family')->user();
+    
+    if ($member->family_id !== $family->id) {
+        abort(403, 'Anda hanya dapat menghapus anggota keluarga Anda sendiri.');
+    }
+
+    try {
+        $memberName = $member->full_name; // FIXED: Menggunakan full_name
         
-        $family = Auth::guard('family')->user();
-        
-        if ($member->family_id !== $family->id) {
-            abort(403, 'Anda hanya dapat menghapus anggota keluarga Anda sendiri.');
-        }
-
-        try {
-            $memberName = $member->name;
-            
-            // Check if member has children - prevent deletion if has children
-            if ($member->children()->count() > 0) {
-                return redirect()->back()
-                    ->with('error', "Tidak dapat menghapus {$memberName} karena masih memiliki anak dalam silsilah keluarga. Hapus atau pindahkan anak-anak terlebih dahulu.");
-            }
-
-            // Delete profile photo if exists
-            if ($member->profile_photo) {
-                \Storage::disk('public')->delete($member->profile_photo);
-            }
-            
-            $member->delete();
-
-            // SIMPLIFIED: Activity log
-            try {
-                ActivityLog::create([
-                    'family_id' => $family->id,
-                    'subject_type' => 'member',
-                    'subject_id' => null,
-                    'description' => "Anggota keluarga '{$memberName}' berhasil dihapus oleh admin {$family->name}",
-                ]);
-            } catch (\Exception $e) {
-                Log::warning('Activity log delete failed: ' . $e->getMessage());
-            }
-
-            return redirect()
-                ->route('families.show', $family)
-                ->with('success', "Anggota keluarga '{$memberName}' berhasil dihapus.");
-
-        } catch (\Exception $e) {
-            Log::error('Member deletion error: ' . $e->getMessage());
-            
+        // Check if member has children - prevent deletion if has children
+        if ($member->children()->count() > 0) {
             return redirect()->back()
-                ->with('error', 'Terjadi kesalahan saat menghapus anggota keluarga.');
+                ->with('error', "Tidak dapat menghapus {$memberName} karena masih memiliki anak dalam silsilah keluarga. Hapus atau pindahkan anak-anak terlebih dahulu.");
         }
+
+        // Delete profile photo if exists
+        if ($member->profile_photo) {
+            \Storage::disk('public')->delete($member->profile_photo);
+        }
+        
+        $member->delete();
+
+        // SIMPLIFIED: Activity log
+        try {
+            ActivityLog::create([
+                'family_id' => $family->id,
+                'subject_type' => 'member',
+                'subject_id' => null,
+                'description' => "Anggota keluarga '{$memberName}' berhasil dihapus oleh admin {$family->name}",
+            ]);
+        } catch (\Exception $e) {
+            \Log::warning('Activity log delete failed: ' . $e->getMessage());
+        }
+
+        return redirect()
+            ->route('families.show', $family)
+            ->with('success', "Anggota keluarga '{$memberName}' berhasil dihapus.");
+
+    } catch (\Exception $e) {
+        \Log::error('Member deletion error: ' . $e->getMessage());
+        
+        return redirect()->back()
+            ->with('error', 'Terjadi kesalahan saat menghapus anggota keluarga.');
+    }
+
     }
 }

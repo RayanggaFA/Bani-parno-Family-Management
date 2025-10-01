@@ -325,18 +325,18 @@
             </form>
 
             <!-- Danger Zone -->
-            <div class="mt-12 pt-8 border-t border-gray-200">
-                <h3 class="text-lg font-semibold text-red-600 mb-4">
-                    <i class="fas fa-exclamation-triangle mr-2"></i>Zona Bahaya
-                </h3>
-                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <p class="text-red-700 mb-4">Hapus anggota ini dari keluarga. Tindakan ini tidak dapat dibatalkan!</p>
-                    <button onclick="confirmDelete()" 
-                            class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition">
-                        <i class="fas fa-trash mr-2"></i>Hapus Anggota
-                    </button>
-                </div>
-            </div>
+<div class="mt-12 pt-8 border-t border-gray-200">
+    <h3 class="text-lg font-semibold text-red-600 mb-4">
+        <i class="fas fa-exclamation-triangle mr-2"></i>Zona Bahaya
+    </h3>
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+        <p class="text-red-700 mb-4">Hapus anggota ini dari keluarga. Tindakan ini tidak dapat dibatalkan!</p>
+        <button type="button" id="deleteButton"
+                class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition">
+            <i class="fas fa-trash mr-2"></i>Hapus Anggota
+        </button>
+    </div>
+</div>
         </div>
     </div>
 </section>
@@ -354,7 +354,7 @@
                 Tindakan ini tidak dapat dibatalkan.
             </p>
             <div class="flex space-x-4">
-                <button onclick="closeDeleteModal()" 
+                <button type="button" id="cancelButton"
                         class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg transition">
                     Batal
                 </button>
@@ -370,72 +370,43 @@
         </div>
     </div>
 </div>
-@endsection
 
-@section('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Same address checkbox functionality
-    const sameAddressCheckbox = document.getElementById('same_address');
-    const ktpAddressTextarea = document.getElementById('ktp_address');
-    const currentAddressTextarea = document.getElementById('current_address');
+(function() {
+    const deleteButton = document.getElementById('deleteButton');
+    const cancelButton = document.getElementById('cancelButton');
+    const deleteModal = document.getElementById('deleteModal');
     
-    if (sameAddressCheckbox) {
-        sameAddressCheckbox.addEventListener('change', function() {
-            if (this.checked) {
-                currentAddressTextarea.value = ktpAddressTextarea.value;
+    if (deleteButton) {
+        deleteButton.addEventListener('click', function() {
+            deleteModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        });
+    }
+    
+    if (cancelButton) {
+        cancelButton.addEventListener('click', function() {
+            deleteModal.classList.add('hidden');
+            document.body.style.overflow = '';
+        });
+    }
+    
+    if (deleteModal) {
+        deleteModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
+                document.body.style.overflow = '';
             }
         });
     }
     
-    if (ktpAddressTextarea) {
-        ktpAddressTextarea.addEventListener('input', function() {
-            if (sameAddressCheckbox && sameAddressCheckbox.checked) {
-                currentAddressTextarea.value = this.value;
-            }
-        });
-    }
-    
-    // Photo preview
-    const photoInput = document.getElementById('profile_photo');
-    if (photoInput) {
-        photoInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    // Create preview if it doesn't exist
-                    let preview = document.getElementById('photo-preview');
-                    if (!preview) {
-                        preview = document.createElement('div');
-                        preview.id = 'photo-preview';
-                        preview.className = 'mt-2';
-                        photoInput.parentNode.appendChild(preview);
-                    }
-                    preview.innerHTML = `
-                        <img src="${e.target.result}" alt="Preview" class="w-20 h-20 object-cover rounded-lg border">
-                        <p class="text-sm text-gray-500 mt-1">Preview foto baru</p>
-                    `;
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    }
-});
-
-function confirmDelete() {
-    document.getElementById('deleteModal').classList.remove('hidden');
-}
-
-function closeDeleteModal() {
-    document.getElementById('deleteModal').classList.add('hidden');
-}
-
-// Close modal when clicking outside
-document.getElementById('deleteModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeDeleteModal();
-    }
-});
+    // ESC key to close
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && deleteModal && !deleteModal.classList.contains('hidden')) {
+            deleteModal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+    });
+})();
 </script>
 @endsection

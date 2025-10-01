@@ -49,49 +49,6 @@
                     </div>
                 </div>
             </div>
-            
-            <!-- Admin Actions Panel - FIXED AUTH -->
-            @auth('family')
-                @if($isAdmin)
-                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 min-w-80">
-                        <h3 class="text-xl font-bold text-white mb-4 flex items-center">
-                            <i class="fas fa-user-shield mr-2"></i>
-                            Panel Admin
-                        </h3>
-                        <div class="space-y-3">
-                            <a href="{{ route('families.edit', $family) }}" 
-                               class="w-full bg-white/20 hover:bg-white/30 text-white font-medium py-3 px-4 rounded-lg transition flex items-center justify-center">
-                                <i class="fas fa-edit mr-2"></i>
-                                Edit Keluarga
-                            </a>
-                            <a href="{{ route('members.create') }}" 
-                               class="w-full bg-green-500/20 hover:bg-green-500/30 text-white font-medium py-3 px-4 rounded-lg transition flex items-center justify-center">
-                                <i class="fas fa-user-plus mr-2"></i>
-                                Tambah Anggota
-                            </a>
-                            @if($stats['total_members'] > 0)
-                                <a href="{{ route('families.tree', $family) }}" 
-                                   class="w-full bg-purple-500/20 hover:bg-purple-500/30 text-white font-medium py-3 px-4 rounded-lg transition flex items-center justify-center">
-                                    <i class="fas fa-sitemap mr-2"></i>
-                                    Pohon Keluarga
-                                </a>
-                            @endif
-                            
-                            <!-- Logout -->
-                            <form action="{{ route('auth.logout') }}" method="POST" class="w-full">
-                                @csrf
-                                <button type="submit"
-                                    class="w-full bg-red-500/20 hover:bg-red-500/30 text-white font-medium py-3 px-4 rounded-lg transition flex items-center justify-center">
-                                    <i class="fas fa-sign-out-alt mr-2"></i>
-                                    Logout
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                @endif
-            @endauth
-        </div>
-    </div>
 </section>
 
 <!-- Success/Error Messages -->
@@ -124,7 +81,6 @@
             
             <!-- FIXED: Tombol Tambah Anggota dengan auth yang benar -->
             @auth('family')
-                @if($isAdmin)
                     <div class="flex justify-center sm:justify-end">
                         <a href="{{ route('members.create') }}" 
                            class="bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition flex items-center shadow-lg transform hover:scale-105">
@@ -132,7 +88,6 @@
                             Tambah Anggota
                         </a>
                     </div>
-                @endif
             @endauth
         </div>
 
@@ -414,6 +369,21 @@
         </div>
     </section>
 @endif
+
+{{-- Tombol Logout diletakkan di sini --}}
+            @auth('family')
+                <form action="{{ route('auth.logout') }}" method="POST" class="mt-8">
+                    @csrf
+                    <button type="submit"
+                        class="w-full bg-red-500/20 hover:bg-red-500/30 text-white font-medium py-3 px-4 rounded-lg transition flex items-center justify-center">
+                        <i class="fas fa-sign-out-alt mr-2"></i>
+                        Logout
+                    </button>
+                </form>
+            @endauth
+        </div>
+    </section>
+
 
 <!-- Delete Confirmation Modal -->
 <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">

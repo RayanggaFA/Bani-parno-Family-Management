@@ -168,25 +168,46 @@ class PublicController extends Controller
             if (Schema::hasTable('members')) {
                 $family->load(['members.parent', 'members.children']);
                 
-                // Simple generation grouping
-                $generations = collect();
-                $family->members->each(function($member) use (&$generations) {
-                    $level = $this->getMemberLevel($member);
-                    if (!$generations->has($level)) {
-                        $generations->put($level, collect());
+                // Group members by generation
+                $generationData = collect();
+                
+                foreach ($family->members as $member) {
+                    $generation = $member->generation ?? 1; // Default ke generasi 1 jika null
+                    
+                    if (!$generationData->has($generation)) {
+                        $generationData->put($generation, collect());
                     }
-                    $generations->get($level)->push($member);
-                });
+                    
+                    $generationData->get($generation)->push($member);
+                }
+                
+                // Sort by generation number
+                $generationData = $generationData->sortKeys();
+                
             } else {
-                $generations = collect();
+                $generationData = collect();
             }
+            
+            // Calculate statistics
+            $stats = [
+                'total_members' => $family->members->count(),
+                'male_count' => $family->members->whereIn('gender', ['male', 'Laki-laki'])->count(),
+                'female_count' => $family->members->whereIn('gender', ['female', 'Perempuan'])->count(),
+            ];
+            
         } catch (\Exception $e) {
             \Log::warning('Error loading family tree: ' . $e->getMessage());
-            $generations = collect();
+            $generationData = collect();
+            $stats = [
+                'total_members' => 0,
+                'male_count' => 0,
+                'female_count' => 0,
+            ];
         }
         
-        return view('public.family-tree', compact('family', 'generations'));
+        return view('public.family-tree', compact('family', 'generationData', 'stats'));
     }
+
 
     public function activityHistory(Request $request)
     {

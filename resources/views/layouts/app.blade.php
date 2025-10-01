@@ -18,6 +18,7 @@
             transform: translateY(-5px); 
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); 
         }
+        
         .nav-link {
             @apply text-gray-600 hover:text-orange-500 font-medium transition-colors duration-200;
         }
@@ -57,18 +58,20 @@
                         <i class="fas fa-history mr-1"></i> Riwayat Perubahan
                     </a>
                     <div class="flex items-center space-x-3 ml-4 border-l border-gray-300 pl-6">
-                    <a href="{{ route('auth.login') }}" class="nav-link {{ request()->routeIs('auth.login') ? 'active' : '' }}">
-                    <i class="fas fa-sign-in-alt mr-1"></i> Login
-                    </a>
-                         <a href="{{ route('family.form') }}" 
-                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition duration-200">
-                    <i class="fas fa-user-plus mr-1"></i> Daftar
+                        <a href="{{ route('auth.login') }}" class="nav-link {{ request()->routeIs('auth.login') ? 'active' : '' }}">
+                            <i class="fas fa-sign-in-alt mr-1"></i> Login
                         </a>
+                        <a href="{{ route('family.form') }}" 
+                           class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                            <i class="fas fa-user-plus mr-1"></i> Daftar
+                        </a>
+                    </div>
+                </div>
 
                 <!-- Mobile menu button -->
-                <div class="md:hidden">
-                    <button id="mobile-menu-button" class="text-gray-500 hover:text-orange-500">
-                        <i class="fas fa-bars text-xl"></i>
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-button" class="text-gray-500 hover:text-orange-500 focus:outline-none">
+                        <i class="fas fa-bars text-2xl"></i>
                     </button>
                 </div>
             </div>
@@ -78,19 +81,22 @@
         <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
             <div class="px-2 pt-2 pb-3 space-y-1">
                 <a href="{{ route('home') }}" class="mobile-nav-link">
-                    <i class="fas fa-home mr-2"></i>Beranda
+                    <i class="fas fa-home mr-2"></i> Beranda
                 </a>
                 <a href="{{ route('families.index') }}" class="mobile-nav-link">
-                    <i class="fas fa-users mr-2"></i>Keluarga
+                    <i class="fas fa-users mr-2"></i> Keluarga
                 </a>
                 <a href="{{ route('members.index') }}" class="mobile-nav-link">
-                    <i class="fas fa-user-friends mr-2"></i>Anggota
+                    <i class="fas fa-user-friends mr-2"></i> Anggota
                 </a>
                 <a href="{{ route('public.activity_logs') }}" class="mobile-nav-link">
-                    <i class="fas fa-history mr-2"></i>Riwayat Perubahan
+                    <i class="fas fa-history mr-2"></i> Riwayat Perubahan
                 </a>
-                <a href="/admin" class="mobile-nav-link">
-                    <i class="fas fa-cog mr-2"></i>Admin
+                <a href="{{ route('auth.login') }}" class="mobile-nav-link">
+                    <i class="fas fa-sign-in-alt mr-2"></i> Login
+                </a>
+                <a href="{{ route('family.form') }}" class="mobile-nav-link bg-green-600 text-white">
+                    <i class="fas fa-user-plus mr-2"></i> Daftar
                 </a>
             </div>
         </div>
