@@ -63,7 +63,7 @@ class MemberFormController extends Controller
             'gender' => 'required|in:Laki-laki,Perempuan',
             'birth_date' => 'nullable|date|before:today',
             'birth_place' => 'nullable|string|max:255',
-            'marital_status' => 'required|in:single,married,divorced,widowed,prefer_not_to_answer',
+            'status' => 'required|in:Belum Menikah,Sudah Menikah,Janda/Duda,Memilih untuk tidak menjawab',
             'occupation' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
             'domicile_city' => 'required|string|max:255',
@@ -115,7 +115,7 @@ class MemberFormController extends Controller
                 'gender' => $request->gender,
                 'birth_date' => $request->birth_date,
                 'birth_place' => $request->birth_place,
-                'marital_status' => $request->marital_status,
+                'status' => $request->status,
                 'occupation' => $request->occupation,
                 'phone' => $request->phone,
                 'parent_id' => $request->parent_id,
@@ -208,7 +208,7 @@ class MemberFormController extends Controller
     'birth_place' => 'nullable|string|max:255',
     'death_date' => 'nullable|date|after:birth_date',
     'death_place' => 'nullable|string|max:255',
-    'marital_status' => 'required|in:single,married,divorced,widowed',
+    'status' => 'required|in:Belum Menikah,Sudah Menikah,Janda/Duda,Memilih untuk tidak menjawab',
     'occupation' => 'nullable|string|max:255',
     'address' => 'nullable|string|max:500',
     'phone' => 'nullable|string|max:20',
@@ -251,8 +251,9 @@ class MemberFormController extends Controller
 
             $member->update($request->only([
     'full_name', 'nickname', 'gender', 'birth_date', 'birth_place',
-    'death_date', 'death_place', 'marital_status', 'occupation',
-    'address', 'phone', 'parent_id', 'notes'
+    'occupation', 'phone_number', 'email', 'parent_id', 
+    'domicile_city', 'domicile_province', 'ktp_address', 
+    'current_address', 'generation', 'status'
 ]));
 
 

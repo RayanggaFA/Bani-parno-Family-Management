@@ -145,14 +145,12 @@
                             <label for="marital_status" class="block text-sm font-medium text-gray-700 mb-2">
                                 Status Pernikahan <span class="text-red-500">*</span>
                             </label>
-                            <select id="marital_status" name="marital_status" required
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition">
-                                <option value="">Pilih Status Pernikahan</option>
-                                <option value="single" {{ old('marital_status', $member->marital_status) == 'single' ? 'selected' : '' }}>Belum Menikah</option>
-                                <option value="married" {{ old('marital_status', $member->marital_status) == 'married' ? 'selected' : '' }}>Menikah</option>
-                                <option value="divorced" {{ old('marital_status', $member->marital_status) == 'divorced' ? 'selected' : '' }}>Cerai</option>
-                                <option value="widowed" {{ old('marital_status', $member->marital_status) == 'widowed' ? 'selected' : '' }}>Janda/Duda</option>
-                                <option value="prefer_not_to_answer" {{ old('marital_status', $member->marital_status) == 'prefer_not_to_answer' ? 'selected' : '' }}>Memilih untuk tidak menjawab</option>
+                            <select id="status" name="status" required>
+                            <option value="">Pilih Status Pernikahan</option>
+                            <option value="Belum Menikah" {{ old('status', $member->status) == 'Belum Menikah' ? 'selected' : '' }}>Belum Menikah</option>
+                            <option value="Sudah Menikah" {{ old('status', $member->status) == 'Sudah Menikah' ? 'selected' : '' }}>Sudah Menikah</option>
+                            <option value="Janda/Duda" {{ old('status', $member->status) == 'Janda/Duda' ? 'selected' : '' }}>Janda/Duda</option>
+                            <option value="Memilih untuk tidak menjawab" {{ old('status', $member->status) == 'Memilih untuk tidak menjawab' ? 'selected' : '' }}>Memilih untuk tidak menjawab</option>
                             </select>
                         </div>
                     </div>
