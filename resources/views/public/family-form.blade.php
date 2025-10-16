@@ -1,4 +1,3 @@
-{{-- resources/views/public/family-form.blade.php - FIXED COMPLETE VERSION --}}
 @extends('layouts.app')
 
 @section('title', 'Daftarkan Keluarga Baru - Bani Parno')
@@ -41,8 +40,41 @@
             @endif
 
             <!-- Registration Form -->
-            <form method="POST" action="{{ route('families.store') }}" class="space-y-6" id="registrationForm">
+            <form method="POST" action="{{ route('families.store') }}" enctype="multipart/form-data" class="space-y-6" id="registrationForm">
                 @csrf
+
+                <!-- Photo Upload Section -->
+                <div class="text-center bg-gray-50 rounded-xl p-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-4">
+                        <i class="fas fa-camera mr-2 text-indigo-500"></i>Foto Keluarga (Opsional)
+                    </label>
+                    
+                    <!-- Photo Preview -->
+                    <div class="mb-4">
+                        <div id="photoPreviewContainer" class="hidden">
+                            <img id="photoPreview" src="" alt="Preview" 
+                                 class="w-32 h-32 rounded-full mx-auto object-cover border-4 border-blue-200 shadow-lg">
+                        </div>
+                        <div id="photoPlaceholder" class="w-32 h-32 rounded-full mx-auto bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center border-4 border-blue-200 shadow-lg">
+                            <i class="fas fa-home text-white text-4xl"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Upload Button -->
+                    <div class="flex justify-center gap-2">
+                        <label for="photo" class="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition inline-flex items-center shadow">
+                            <i class="fas fa-upload mr-2"></i>
+                            <span id="photoButtonText">Pilih Foto</span>
+                        </label>
+                        <input type="file" id="photo" name="photo" accept="image/*" class="hidden">
+                        
+                        <!-- Remove Photo Button -->
+                        <button type="button" id="removePhotoBtn" class="hidden bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-2">Format: JPG, PNG, GIF (Maksimal 2MB)</p>
+                </div>
 
                 <!-- Family Name -->
                 <div>
@@ -115,27 +147,28 @@
                     <textarea id="description" name="description" rows="4"
                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                               placeholder="Ceritakan tentang keluarga Anda...">{{ old('description') }}</textarea>
-                    <p class="text-sm text-gray-500 mt-1">Deskripsi singkat tentang keluarga (maksimal 1000 karakter)</p>
+                    <div class="flex justify-between items-center mt-1">
+                        <p class="text-sm text-gray-500">Deskripsi singkat tentang keluarga</p>
+                        <p id="charCount" class="text-sm text-gray-500">0/1000</p>
+                    </div>
                 </div>
 
-
-    <!-- Submit Button -->
-    <div class="flex space-x-4">
-        <button type="submit" id="submitBtn"
-                class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg transition duration-200 transform hover:scale-105 focus:ring-4 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed">
-            <span id="submitText">
-                <i class="fas fa-user-plus mr-2"></i>Daftar Keluarga
-            </span>
-            <span id="loadingText" class="hidden">
-                <i class="fas fa-spinner fa-spin mr-2"></i>Memproses...
-            </span>
-        </button>
-        <a href="{{ route('families.index') }}" 
-           class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-4 px-6 rounded-lg transition duration-200 text-center">
-            <i class="fas fa-arrow-left mr-2"></i>Kembali
-        </a>
-    </div>
-</form>
+                <!-- Submit Button -->
+                <div class="flex space-x-4 pt-4">
+                    <button type="submit" id="submitBtn"
+                            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg transition duration-200 transform hover:scale-105 focus:ring-4 focus:ring-blue-200">
+                        <span id="submitText">
+                            <i class="fas fa-user-plus mr-2"></i>Daftar Keluarga
+                        </span>
+                        <span id="loadingText" class="hidden">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Memproses...
+                        </span>
+                    </button>
+                    <a href="{{ route('families.index') }}" 
+                       class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-4 px-6 rounded-lg transition duration-200 text-center">
+                        <i class="fas fa-arrow-left mr-2"></i>Kembali
+                    </a>
+                </div>
 
                 <!-- Login Link -->
                 <div class="text-center pt-4 border-t border-gray-200">
@@ -150,8 +183,7 @@
         </div>
     </div>
 </section>
-
-
+@endsection
 
 @section('scripts')
 <script>
@@ -160,37 +192,53 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitBtn = document.getElementById('submitBtn');
     const submitText = document.getElementById('submitText');
     const loadingText = document.getElementById('loadingText');
-    const termsCheckbox = document.getElementById('terms');
     const password = document.getElementById('password');
     const passwordConfirmation = document.getElementById('password_confirmation');
-
-    // Form validation
-    function validateForm() {
-        const name = document.getElementById('name').value.trim();
-        const username = document.getElementById('username').value.trim();
-        const passwordValue = password.value.trim();
-        const passwordConfirmationValue = passwordConfirmation.value.trim();
-        const domicile = document.getElementById('domicile').value.trim();
-        const termsChecked = termsCheckbox.checked;
-
-        const isValid = name && username && passwordValue && passwordConfirmationValue && 
-                       domicile && termsChecked && passwordValue === passwordConfirmationValue;
-
-        submitBtn.disabled = !isValid;
-        submitBtn.classList.toggle('opacity-50', !isValid);
-        submitBtn.classList.toggle('cursor-not-allowed', !isValid);
-
-        return isValid;
-    }
-
-    // Add event listeners for real-time validation
-    ['name', 'username', 'domicile'].forEach(fieldId => {
-        document.getElementById(fieldId).addEventListener('input', validateForm);
+    
+    // Photo upload handling
+    const photoInput = document.getElementById('photo');
+    const photoPreview = document.getElementById('photoPreview');
+    const photoPreviewContainer = document.getElementById('photoPreviewContainer');
+    const photoPlaceholder = document.getElementById('photoPlaceholder');
+    const photoButtonText = document.getElementById('photoButtonText');
+    const removePhotoBtn = document.getElementById('removePhotoBtn');
+    
+    photoInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // Validate file size (2MB max)
+            if (file.size > 2048 * 1024) {
+                alert('Ukuran file terlalu besar! Maksimal 2MB.');
+                photoInput.value = '';
+                return;
+            }
+            
+            // Validate file type
+            if (!file.type.match('image.*')) {
+                alert('File harus berupa gambar!');
+                photoInput.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                photoPreview.src = e.target.result;
+                photoPreviewContainer.classList.remove('hidden');
+                photoPlaceholder.classList.add('hidden');
+                photoButtonText.textContent = 'Ganti Foto';
+                removePhotoBtn.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
     });
     
-    password.addEventListener('input', validateForm);
-    passwordConfirmation.addEventListener('input', validateForm);
-    termsCheckbox.addEventListener('change', validateForm);
+    removePhotoBtn.addEventListener('click', function() {
+        photoInput.value = '';
+        photoPreviewContainer.classList.add('hidden');
+        photoPlaceholder.classList.remove('hidden');
+        photoButtonText.textContent = 'Pilih Foto';
+        removePhotoBtn.classList.add('hidden');
+    });
 
     // Password confirmation validation
     passwordConfirmation.addEventListener('input', function() {
@@ -225,19 +273,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Form submission
     form.addEventListener('submit', function(e) {
-        if (!validateForm()) {
-            e.preventDefault();
-            return;
-        }
-
         // Show loading state
         submitBtn.disabled = true;
         submitText.classList.add('hidden');
         loadingText.classList.remove('hidden');
     });
-
-    // Initial validation
-    validateForm();
 
     // Username validation (alphanumeric and underscore only)
     document.getElementById('username').addEventListener('input', function() {
@@ -246,36 +286,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Description character counter
     const description = document.getElementById('description');
+    const charCount = document.getElementById('charCount');
     const maxLength = 1000;
-    
-    const counter = document.createElement('div');
-    counter.className = 'text-sm text-gray-500 mt-1 text-right';
-    counter.textContent = `0/${maxLength}`;
-    description.parentNode.appendChild(counter);
     
     description.addEventListener('input', function() {
         const currentLength = this.value.length;
-        counter.textContent = `${currentLength}/${maxLength}`;
+        charCount.textContent = `${currentLength}/${maxLength}`;
         
         if (currentLength > maxLength) {
             this.value = this.value.substring(0, maxLength);
-            counter.textContent = `${maxLength}/${maxLength}`;
+            charCount.textContent = `${maxLength}/${maxLength}`;
         }
         
-        counter.classList.toggle('text-red-500', currentLength > maxLength * 0.9);
-        counter.classList.toggle('text-yellow-500', currentLength > maxLength * 0.8 && currentLength <= maxLength * 0.9);
-    });
-
-    // Auto-hide error messages
-    const errorMessages = document.querySelectorAll('.bg-red-50');
-    errorMessages.forEach(message => {
-        setTimeout(() => {
-            message.style.transition = 'opacity 0.5s ease-out';
-            message.style.opacity = '0';
-            setTimeout(() => {
-                message.remove();
-            }, 500);
-        }, 10000);
+        if (currentLength > maxLength * 0.9) {
+            charCount.classList.add('text-red-500');
+            charCount.classList.remove('text-yellow-500', 'text-gray-500');
+        } else if (currentLength > maxLength * 0.8) {
+            charCount.classList.add('text-yellow-500');
+            charCount.classList.remove('text-red-500', 'text-gray-500');
+        } else {
+            charCount.classList.add('text-gray-500');
+            charCount.classList.remove('text-red-500', 'text-yellow-500');
+        }
     });
 });
 </script>

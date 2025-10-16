@@ -57,44 +57,91 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 @foreach($families as $family)
                     <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300 transform hover:-translate-y-1">
-                        <!-- Header -->
-                        <div class="bg-gradient-to-r from-green-500 to-blue-500 h-32 relative">
-                            <div class="absolute inset-0 bg-black/20"></div>
+                        <!-- ✅ UPDATED: Header dengan Foto Keluarga -->
+                        <div class="relative h-48 overflow-hidden">
+                            @if($family->photo)
+                                <!-- Foto keluarga sebagai background dengan overlay -->
+                                <img src="{{ $family->photo_url }}" 
+                                     alt="{{ $family->name }}"
+                                     class="w-full h-full object-cover">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
+                            @else
+                                <!-- Default gradient background -->
+                                <div class="w-full h-full bg-gradient-to-r from-green-500 to-blue-500"></div>
+                                <div class="absolute inset-0 bg-black/20"></div>
+                            @endif
+                            
+                            <!-- Family Info Overlay -->
                             <div class="absolute bottom-4 left-6 right-6">
-                                <h3 class="text-xl font-bold text-white mb-1">{{ $family->name }}</h3>
-                                <p class="text-green-100 text-sm flex items-center">
-                                    <i class="fas fa-map-marker-alt mr-1"></i>
-                                    {{ $family->domicile }}
-                                </p>
+                                <div class="flex items-center mb-2">
+                                    @if($family->photo)
+                                        <!-- Small circular avatar for consistency -->
+                                        <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-white/50 mr-3 flex-shrink-0">
+                                            <img src="{{ $family->photo_url }}" 
+                                                 alt="{{ $family->name }}"
+                                                 class="w-full h-full object-cover">
+                                        </div>
+                                    @else
+                                        <!-- Default icon -->
+                                        <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mr-3">
+                                            <i class="fas fa-home text-white text-lg"></i>
+                                        </div>
+                                    @endif
+                                    
+                                    <div class="flex-1 min-w-0">
+                                        <h3 class="text-xl font-bold text-white mb-1 truncate">{{ $family->name }}</h3>
+                                        <p class="text-white/90 text-sm flex items-center">
+                                            <i class="fas fa-map-marker-alt mr-1 flex-shrink-0"></i>
+                                            <span class="truncate">{{ $family->domicile }}</span>
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
+                            
+                            <!-- Photo indicator badge -->
+                            @if($family->photo)
+                                <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-green-600 text-xs font-medium px-2 py-1 rounded-full flex items-center">
+                                    <i class="fas fa-camera mr-1"></i>
+                                    <span>Foto</span>
+                                </div>
+                            @endif
                         </div>
                         
                         <!-- Content -->
                         <div class="p-6">
                             @if($family->description)
                                 <p class="text-gray-600 mb-4 line-clamp-3">{{ Str::limit($family->description, 120) }}</p>
+                            @else
+                                <p class="text-gray-400 italic mb-4">Belum ada deskripsi</p>
                             @endif
                             
                             <!-- Stats -->
-                            <div class="flex items-center justify-between mb-6">
-                                <div class="flex items-center text-gray-500">
-                                    <i class="fas fa-users mr-2"></i>
-                                    <span>{{ $family->members_count ?? 0 }} anggota</span>
+                            <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+                                <div class="flex items-center text-gray-700">
+                                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-2">
+                                        <i class="fas fa-users text-green-600"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-lg font-bold">{{ $family->members_count ?? 0 }}</div>
+                                        <div class="text-xs text-gray-500">Anggota</div>
+                                    </div>
                                 </div>
-                                <div class="text-sm text-gray-500">
-                                    {{ $family->created_at->diffForHumans() }}
+                                <div class="text-right">
+                                    <div class="text-sm text-gray-500">Bergabung</div>
+                                    <div class="text-xs text-gray-400">{{ $family->created_at->diffForHumans() }}</div>
                                 </div>
                             </div>
                             
                             <!-- Actions -->
                             <div class="flex gap-3">
                                 <a href="{{ route('families.show', $family) }}" 
-                                   class="flex-1 bg-green-600 hover:bg-green-700 text-white text-center py-3 px-4 rounded-lg transition font-medium">
+                                   class="flex-1 bg-green-600 hover:bg-green-700 text-white text-center py-3 px-4 rounded-lg transition font-medium shadow-sm hover:shadow-md">
                                     <i class="fas fa-eye mr-2"></i>Lihat Detail
                                 </a>
                                 @if($family->members_count > 0)
                                     <a href="{{ route('families.tree', $family) }}" 
-                                       class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg transition">
+                                       class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg transition shadow-sm hover:shadow-md"
+                                       title="Lihat Pohon Keluarga">
                                         <i class="fas fa-sitemap"></i>
                                     </a>
                                 @endif

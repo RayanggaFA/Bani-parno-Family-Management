@@ -1,4 +1,3 @@
-<!-- resources/views/public/family-edit.blade.php - CREATE NEW FILE -->
 @extends('layouts.app')
 
 @section('title', 'Edit Keluarga - ' . $family->name)
@@ -13,8 +12,12 @@
                 <p class="text-xl text-green-100">{{ $family->name }}</p>
             </div>
             <div class="hidden md:block">
-                <div class="w-20 h-20 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                    <i class="fas fa-edit text-white text-3xl"></i>
+                <div class="w-20 h-20 bg-white bg-opacity-20 rounded-full flex items-center justify-center overflow-hidden">
+                    @if($family->photo)
+                        <img src="{{ $family->photo_url }}" alt="{{ $family->name }}" class="w-full h-full object-cover">
+                    @else
+                        <i class="fas fa-edit text-white text-3xl"></i>
+                    @endif
                 </div>
             </div>
         </div>
@@ -50,9 +53,53 @@
             @endif
 
             <!-- Edit Form -->
-            <form method="POST" action="{{ route('families.update', $family) }}" class="space-y-6">
+            <form method="POST" action="{{ route('families.update', $family) }}" enctype="multipart/form-data" class="space-y-6">
                 @csrf
                 @method('PUT')
+
+                <!-- Current Photo Display & Upload -->
+                <div class="text-center bg-gray-50 rounded-xl p-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-4">
+                        <i class="fas fa-camera mr-2 text-green-500"></i>Foto Keluarga
+                    </label>
+                    
+                    <!-- Current Photo Preview -->
+                    <div class="mb-4">
+                        <div id="currentPhotoContainer" class="{{ $family->photo ? '' : 'hidden' }}">
+                            <img id="currentPhoto" src="{{ $family->photo_url }}" alt="{{ $family->name }}" 
+                                 class="w-32 h-32 rounded-full mx-auto object-cover border-4 border-green-200 shadow-lg">
+                            <p class="text-sm text-gray-500 mt-2">Foto saat ini</p>
+                        </div>
+                        
+                        <!-- New Photo Preview (Hidden by default) -->
+                        <div id="newPhotoPreviewContainer" class="hidden">
+                            <img id="newPhotoPreview" src="" alt="Preview Baru" 
+                                 class="w-32 h-32 rounded-full mx-auto object-cover border-4 border-blue-200 shadow-lg">
+                            <p class="text-sm text-blue-600 mt-2 font-medium">Preview foto baru</p>
+                        </div>
+                        
+                        <!-- Placeholder (if no photo) -->
+                        <div id="photoPlaceholder" class="w-32 h-32 rounded-full mx-auto bg-gradient-to-br from-green-400 to-teal-500 flex items-center justify-center border-4 border-green-200 shadow-lg {{ $family->photo ? 'hidden' : '' }}">
+                            <i class="fas fa-home text-white text-4xl"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Upload Buttons -->
+                    <div class="flex justify-center gap-2">
+                        <label for="photo" class="cursor-pointer bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition inline-flex items-center shadow">
+                            <i class="fas fa-upload mr-2"></i>
+                            <span id="photoButtonText">{{ $family->photo ? 'Ganti Foto' : 'Upload Foto' }}</span>
+                        </label>
+                        <input type="file" id="photo" name="photo" accept="image/*" class="hidden">
+                        
+                        <!-- Remove/Reset Photo Button -->
+                        <button type="button" id="resetPhotoBtn" class="hidden bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-2">Format: JPG, PNG, GIF (Maksimal 2MB)</p>
+                    <p class="text-sm text-gray-400 mt-1">Kosongkan jika tidak ingin mengubah foto</p>
+                </div>
 
                 <!-- Family Name -->
                 <div>
@@ -90,7 +137,10 @@
                     <textarea id="description" name="description" rows="4"
                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
                               placeholder="Ceritakan tentang keluarga Anda...">{{ old('description', $family->description) }}</textarea>
-                    <p class="text-sm text-gray-500 mt-1">Deskripsi singkat tentang keluarga (maksimal 1000 karakter)</p>
+                    <div class="flex justify-between items-center mt-1">
+                        <p class="text-sm text-gray-500">Deskripsi singkat tentang keluarga</p>
+                        <p id="charCount" class="text-sm text-gray-500">{{ strlen(old('description', $family->description ?? '')) }}/1000</p>
+                    </div>
                 </div>
 
                 <!-- Action Buttons -->
@@ -113,7 +163,7 @@
                 </h3>
                 <div class="bg-red-50 border border-red-200 rounded-lg p-4">
                     <p class="text-red-700 mb-4">Hapus keluarga ini beserta seluruh anggota dan data terkait. Tindakan ini tidak dapat dibatalkan!</p>
-                    <button onclick="confirmDelete()" 
+                    <button type="button" id="deleteButton"
                             class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition">
                         <i class="fas fa-trash mr-2"></i>Hapus Keluarga
                     </button>
@@ -136,7 +186,7 @@
                 Semua anggota dan data terkait akan ikut terhapus dan tidak dapat dipulihkan.
             </p>
             <div class="flex space-x-4">
-                <button onclick="closeDeleteModal()" 
+                <button type="button" id="cancelButton"
                         class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg transition">
                     Batal
                 </button>
@@ -156,19 +206,124 @@
 
 @section('scripts')
 <script>
-function confirmDelete() {
-    document.getElementById('deleteModal').classList.remove('hidden');
-}
+document.addEventListener('DOMContentLoaded', function() {
+    // Photo upload handling
+    const photoInput = document.getElementById('photo');
+    const currentPhotoContainer = document.getElementById('currentPhotoContainer');
+    const newPhotoPreview = document.getElementById('newPhotoPreview');
+    const newPhotoPreviewContainer = document.getElementById('newPhotoPreviewContainer');
+    const photoPlaceholder = document.getElementById('photoPlaceholder');
+    const photoButtonText = document.getElementById('photoButtonText');
+    const resetPhotoBtn = document.getElementById('resetPhotoBtn');
+    
+    photoInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // Validate file size (2MB max)
+            if (file.size > 2048 * 1024) {
+                alert('Ukuran file terlalu besar! Maksimal 2MB.');
+                photoInput.value = '';
+                return;
+            }
+            
+            // Validate file type
+            if (!file.type.match('image.*')) {
+                alert('File harus berupa gambar!');
+                photoInput.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                newPhotoPreview.src = e.target.result;
+                newPhotoPreviewContainer.classList.remove('hidden');
+                currentPhotoContainer.classList.add('hidden');
+                photoPlaceholder.classList.add('hidden');
+                photoButtonText.textContent = 'Ganti Foto Lain';
+                resetPhotoBtn.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    resetPhotoBtn.addEventListener('click', function() {
+        photoInput.value = '';
+        newPhotoPreviewContainer.classList.add('hidden');
+        
+        // Show current photo or placeholder
+        @if($family->photo)
+            currentPhotoContainer.classList.remove('hidden');
+            photoButtonText.textContent = 'Ganti Foto';
+        @else
+            photoPlaceholder.classList.remove('hidden');
+            photoButtonText.textContent = 'Upload Foto';
+        @endif
+        
+        resetPhotoBtn.classList.add('hidden');
+    });
 
-function closeDeleteModal() {
-    document.getElementById('deleteModal').classList.add('hidden');
-}
+    // Description character counter
+    const description = document.getElementById('description');
+    const charCount = document.getElementById('charCount');
+    const maxLength = 1000;
+    
+    description.addEventListener('input', function() {
+        const currentLength = this.value.length;
+        charCount.textContent = `${currentLength}/${maxLength}`;
+        
+        if (currentLength > maxLength) {
+            this.value = this.value.substring(0, maxLength);
+            charCount.textContent = `${maxLength}/${maxLength}`;
+        }
+        
+        if (currentLength > maxLength * 0.9) {
+            charCount.classList.add('text-red-500');
+            charCount.classList.remove('text-yellow-500', 'text-gray-500');
+        } else if (currentLength > maxLength * 0.8) {
+            charCount.classList.add('text-yellow-500');
+            charCount.classList.remove('text-red-500', 'text-gray-500');
+        } else {
+            charCount.classList.add('text-gray-500');
+            charCount.classList.remove('text-red-500', 'text-yellow-500');
+        }
+    });
 
-// Close modal when clicking outside
-document.getElementById('deleteModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeDeleteModal();
+    // Delete modal handling
+    const deleteButton = document.getElementById('deleteButton');
+    const cancelButton = document.getElementById('cancelButton');
+    const deleteModal = document.getElementById('deleteModal');
+    
+    if (deleteButton) {
+        deleteButton.addEventListener('click', function() {
+            deleteModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        });
     }
+    
+    if (cancelButton) {
+        cancelButton.addEventListener('click', function() {
+            deleteModal.classList.add('hidden');
+            document.body.style.overflow = '';
+        });
+    }
+    
+    // Close modal on outside click
+    if (deleteModal) {
+        deleteModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+        });
+    }
+    
+    // ESC key to close modal
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && deleteModal && !deleteModal.classList.contains('hidden')) {
+            deleteModal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+    });
 });
 </script>
 @endsection

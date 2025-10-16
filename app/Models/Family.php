@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 
 class Family extends Authenticatable
 {
@@ -16,6 +17,7 @@ class Family extends Authenticatable
         'password',
         'domicile',
         'description',
+        'photo', // ✅ TAMBAHAN: Support upload foto
     ];
 
     protected $hidden = [
@@ -28,6 +30,17 @@ class Family extends Authenticatable
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    // ✅ TAMBAHAN: Accessor untuk URL foto
+    public function getPhotoUrlAttribute()
+    {
+        if ($this->photo) {
+            return Storage::url($this->photo);
+        }
+        
+        // Default avatar dengan initial nama keluarga
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&size=200&background=4F46E5&color=fff';
+    }
 
     // Relationships
     public function members()
@@ -78,9 +91,9 @@ class Family extends Authenticatable
     {
         return [
             'total_members' => $this->members()->count(),
-            'male_members' => $this->members()->where('gender', 'male')->count(),
-            'female_members' => $this->members()->where('gender', 'female')->count(),
-            'married_members' => $this->members()->where('marital_status', 'married')->count(),
+            'male_members' => $this->members()->where('gender', 'Laki-laki')->count(),
+            'female_members' => $this->members()->where('gender', 'Perempuan')->count(),
+            'married_members' => $this->members()->where('status', 'Sudah Menikah')->count(),
             'recent_activities' => $this->activityLogs()->latest()->limit(10)->get(),
         ];
     }

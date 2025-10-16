@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class FamilyFormController extends Controller
 {
@@ -30,7 +31,7 @@ class FamilyFormController extends Controller
         // Redirect jika sudah login
         if (Auth::guard('family')->check()) {
             $family = Auth::guard('family')->user();
-            return redirect()->route('families.detail', $family);
+            return redirect()->route('families.show', $family);
         }
         
         $validator = Validator::make($request->all(), [
@@ -39,6 +40,7 @@ class FamilyFormController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'domicile' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // ✅ TAMBAHAN: Validasi foto
         ], [
             'name.required' => 'Nama keluarga wajib diisi.',
             'username.required' => 'Username wajib diisi.',
@@ -48,6 +50,9 @@ class FamilyFormController extends Controller
             'password.min' => 'Password minimal 8 karakter.',
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
             'domicile.required' => 'Domisili wajib diisi.',
+            'photo.image' => 'File harus berupa gambar.',
+            'photo.mimes' => 'Format foto harus jpeg, png, jpg, atau gif.',
+            'photo.max' => 'Ukuran foto maksimal 2MB.',
         ]);
 
         if ($validator->fails()) {
@@ -57,12 +62,19 @@ class FamilyFormController extends Controller
         DB::beginTransaction();
         
         try {
+            // ✅ TAMBAHAN: Handle upload foto
+            $photoPath = null;
+            if ($request->hasFile('photo')) {
+                $photoPath = $request->file('photo')->store('family-photos', 'public');
+            }
+
             $family = Family::create([
                 'name' => $request->name,
                 'username' => $request->username,
                 'password' => Hash::make($request->password),
                 'domicile' => $request->domicile,
                 'description' => $request->description,
+                'photo' => $photoPath, // ✅ TAMBAHAN: Simpan path foto
             ]);
 
             ActivityLog::create([
@@ -85,6 +97,12 @@ class FamilyFormController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            
+            // ✅ TAMBAHAN: Hapus foto jika gagal
+            if (isset($photoPath)) {
+                Storage::disk('public')->delete($photoPath);
+            }
+            
             Log::error('Family registration error: ' . $e->getMessage());
             
             return redirect()->back()
@@ -213,6 +231,11 @@ class FamilyFormController extends Controller
             'username' => 'required|string|max:255|alpha_dash|unique:families,username,' . $family->id,
             'domicile' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // ✅ TAMBAHAN: Validasi foto
+        ], [
+            'photo.image' => 'File harus berupa gambar.',
+            'photo.mimes' => 'Format foto harus jpeg, png, jpg, atau gif.',
+            'photo.max' => 'Ukuran foto maksimal 2MB.',
         ]);
 
         if ($validator->fails()) {
@@ -220,7 +243,25 @@ class FamilyFormController extends Controller
         }
 
         try {
+            // ✅ TAMBAHAN: Handle upload foto baru
+            if ($request->hasFile('photo')) {
+                // Hapus foto lama jika ada
+                if ($family->photo) {
+                    Storage::disk('public')->delete($family->photo);
+                }
+                
+                // Upload foto baru
+                $photoPath = $request->file('photo')->store('family-photos', 'public');
+                $family->photo = $photoPath;
+            }
+
+            // Update data lainnya
             $family->update($request->only(['name', 'username', 'domicile', 'description']));
+            
+            // Save photo jika ada update
+            if ($request->hasFile('photo')) {
+                $family->save();
+            }
 
             ActivityLog::create([
                 'family_id' => $family->id,
@@ -257,6 +298,11 @@ class FamilyFormController extends Controller
 
         try {
             $familyName = $family->name;
+            
+            // ✅ TAMBAHAN: Hapus foto jika ada
+            if ($family->photo) {
+                Storage::disk('public')->delete($family->photo);
+            }
             
             // Logout sebelum menghapus
             Auth::guard('family')->logout();
