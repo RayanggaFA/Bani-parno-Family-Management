@@ -15,7 +15,7 @@
     "APP_ENV": "production",
     "APP_DEBUG": "false",
     "APP_URL": "https://your-production-url.vercel.app",
-    "APP_KEY": "base64:TGaVaXwhWgjn9akhE4SCSIjGG/cQqvICUQ+PgLA3Bs0=",
+    "APP_KEY": "base64:Qo+fYz61sJ+rlMHW3MLYZbx9k65LR4UzGxOwQ1SvSLo=",
     "LOG_CHANNEL": "stderr",
     "CACHE_DRIVER": "array",
     "SESSION_DRIVER": "cookie",
