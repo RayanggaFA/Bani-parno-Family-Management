@@ -12,7 +12,6 @@
     { "src": "/(.*)", "dest": "/api/index.php" }
   ],
   "env": {
-    "APP_NAME": "Laravel",
     "APP_ENV": "production",
     "APP_DEBUG": "false",
     "APP_URL": "https://your-production-url.vercel.app",
@@ -20,7 +19,6 @@
     "LOG_CHANNEL": "stderr",
     "CACHE_DRIVER": "array",
     "SESSION_DRIVER": "cookie",
-    "QUEUE_CONNECTION": "sync",
     "VIEW_COMPILED_PATH": "/tmp",
     "APP_CONFIG_CACHE": "/tmp/config.php",
     "APP_EVENTS_CACHE": "/tmp/events.php",
@@ -34,7 +32,7 @@
     "DB_USERNAME": "db2024_stormtorn",
     "DB_PASSWORD": "masukkan_password_mysql_anda_disini"
   },
-  "buildCommand": "composer install && php artisan config:cache && php artisan route:cache && vite build",
+  "buildCommand": "vite build",
   "outputDirectory": "public",
   "public": true
 }
