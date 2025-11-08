@@ -178,6 +178,10 @@
                                     <span class="font-semibold text-gray-900">{{ $member->gender }}</span>
                                 </div>
                                 <div class="flex justify-between py-2">
+                                <span class="text-gray-600">Nama Panggilan:</span>
+                                <span class="font-semibold text-gray-900">{{ $member->nickname }}</span>
+                             </div>
+                                <div class="flex justify-between py-2">
                                     <span class="text-gray-600">Usia:</span>
                                     <span class="font-semibold text-gray-900">{{ $member->birth_date->age }} tahun</span>
                                 </div>

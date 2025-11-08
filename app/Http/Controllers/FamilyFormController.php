@@ -40,7 +40,7 @@ class FamilyFormController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'domicile' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // ✅ TAMBAHAN: Validasi foto
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', 
         ], [
             'name.required' => 'Nama keluarga wajib diisi.',
             'username.required' => 'Username wajib diisi.',
@@ -74,7 +74,7 @@ class FamilyFormController extends Controller
                 'password' => Hash::make($request->password),
                 'domicile' => $request->domicile,
                 'description' => $request->description,
-                'photo' => $photoPath, // ✅ TAMBAHAN: Simpan path foto
+                
             ]);
 
             ActivityLog::create([
@@ -96,9 +96,9 @@ class FamilyFormController extends Controller
                 ->with('success', "Selamat datang! Keluarga '{$family->name}' berhasil didaftarkan. Anda sekarang adalah admin keluarga ini.");
 
         } catch (\Exception $e) {
+
+            dd($e->getMessage(), $e->getTraceAsString());
             DB::rollBack();
-            
-            // ✅ TAMBAHAN: Hapus foto jika gagal
             if (isset($photoPath)) {
                 Storage::disk('public')->delete($photoPath);
             }

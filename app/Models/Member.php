@@ -15,6 +15,7 @@ class Member extends Model
         'family_id',
         'full_name',
         'profile_photo',
+        'nickname',
         'birth_place',
         'birth_date',
         'occupation',

@@ -35,18 +35,23 @@ class PublicController extends Controller
     }
 
     public function families(Request $request)
-    {
-        $query = Family::withCount('members');
-        
-        if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('domicile', 'like', '%' . $request->search . '%');
-        }
-        
-        $families = $query->orderBy('name')->paginate(12);
-        
-        return view('public.families', compact('families'));
+{
+    $query = Family::withCount('members');
+
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('name', 'like', "%{$search}%")
+              ->orWhere('occupation', 'like', "%{$search}%")
+              ->orWhere('domicile_city', 'like', "%{$search}%")
+              ->orWhere('domicile_province', 'like', "%{$search}%");
+        });
     }
+
+    $families = $query->orderBy('name')->paginate(12);
+
+    return view('public.families', compact('families'));
+}
 
     public function family(Family $family)
     {
@@ -106,7 +111,9 @@ class PublicController extends Controller
         $query->where(function($q) use ($request) {
             $q->where('full_name', 'like', '%' . $request->search . '%')
               ->orWhere('occupation', 'like', '%' . $request->search . '%')
-              ->orWhere('birth_place', 'like', '%' . $request->search . '%');
+              ->orWhere('birth_place', 'like', '%' . $request->search . '%')
+              ->orWhere('domicile_city', 'like', '%' . $request->search . '%')
+            ->orWhere('domicile_province', 'like', '%' . $request->search . '%');
         });
     }
 

@@ -17,7 +17,7 @@ class Family extends Authenticatable
         'password',
         'domicile',
         'description',
-        'photo', // ✅ TAMBAHAN: Support upload foto
+        'photo', 
     ];
 
     protected $hidden = [
@@ -31,7 +31,7 @@ class Family extends Authenticatable
         'updated_at' => 'datetime',
     ];
 
-    // ✅ TAMBAHAN: Accessor untuk URL foto
+    
     public function getPhotoUrlAttribute()
     {
         if ($this->photo) {

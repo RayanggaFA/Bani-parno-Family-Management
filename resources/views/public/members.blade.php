@@ -28,56 +28,85 @@
         </div>
 
         <!-- Search and Filters -->
-        <div class="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-4 md:mb-6 mx-auto">
-            <form method="GET" class="space-y-4 max-w-6xl mx-auto">
-                <!-- Search Bar -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                    <div class="relative sm:col-span-2 lg:col-span-1">
-                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                        <input type="text" name="search" value="{{ request('search') }}" 
-                               placeholder="Nama atau pekerjaan..." 
-                               class="w-full pl-10 pr-4 py-2 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center sm:text-left">
-                    </div>
-                    
-                    <!-- Family Filter -->
-                    <select name="family_id" class="border border-gray-300 rounded-lg px-3 md:px-4 py-2 md:py-3 text-sm md:text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center w-full">
-                        <option value="">Semua Keluarga</option>
-                        @foreach($families as $id => $name)
-                            <option value="{{ $id }}" {{ request('family_id') == $id ? 'selected' : '' }}>
-                                {{ $name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    
-                    <!-- Status Filter -->
-                    <select name="status" class="border border-gray-300 rounded-lg px-3 md:px-4 py-2 md:py-3 text-sm md:text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center w-full">
-                        <option value="">Semua Status</option>
-                        <option value="Belum Menikah" {{ request('status') == 'Belum Menikah' ? 'selected' : '' }}>Belum Menikah</option>
-                        <option value="Sudah Menikah" {{ request('status') == 'Sudah Menikah' ? 'selected' : '' }}>Sudah Menikah</option>
-                        <option value="Janda/Duda" {{ request('status') == 'Janda/Duda' ? 'selected' : '' }}>Janda/Duda</option>
-                    </select>
-                    
-                    <!-- Gender Filter -->
-                    <select name="gender" class="border border-gray-300 rounded-lg px-3 md:px-4 py-2 md:py-3 text-sm md:text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center w-full">
-                        <option value="">Semua</option>
-                        <option value="Laki-laki" {{ request('gender') == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
-                        <option value="Perempuan" {{ request('gender') == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
-                    </select>
-                </div>
-                
-                <!-- Action Buttons -->
-                <div class="flex flex-col sm:flex-row sm:justify-center gap-3 items-center">
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 md:px-6 py-2 rounded-lg transition text-sm md:text-base w-full sm:w-auto min-w-[120px] flex items-center justify-center">
-                        <i class="fas fa-search mr-2"></i>Cari
-                    </button>
-                    @if(request()->hasAny(['search', 'family_id', 'status', 'gender']))
-                    <a href="{{ route('members.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 md:px-6 py-2 rounded-lg transition text-center text-sm md:text-base w-full sm:w-auto min-w-[120px] flex items-center justify-center">
-                        <i class="fas fa-times mr-2"></i>Reset Filter
-                    </a>
-                    @endif
-                </div>
-            </form>
+<div class="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-4 md:mb-6 mx-auto max-w-6xl">
+    <form method="GET" class="space-y-4">
+        <!-- Search and Filters Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+
+            <!-- Search Bar -->
+            <div class="relative sm:col-span-2 lg:col-span-1">
+                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                <input 
+                    type="text" 
+                    name="search" 
+                    value="{{ request('search') }}" 
+                    placeholder="Cari nama, pekerjaan, atau domisili..." 
+                    class="w-full pl-10 pr-4 py-2 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+                >
+            </div>
+
+            <!-- Family Filter -->
+            <div>
+                <select 
+                    name="family_id" 
+                    class="w-full border border-gray-300 rounded-lg px-3 md:px-4 py-2 md:py-3 text-sm md:text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                    <option value="">Semua Keluarga</option>
+                    @foreach($families as $id => $name)
+                        <option value="{{ $id }}" {{ request('family_id') == $id ? 'selected' : '' }}>
+                            {{ $name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Status Filter -->
+            <div>
+                <select 
+                    name="status" 
+                    class="w-full border border-gray-300 rounded-lg px-3 md:px-4 py-2 md:py-3 text-sm md:text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                    <option value="">Semua Status</option>
+                    <option value="Belum Menikah" {{ request('status') == 'Belum Menikah' ? 'selected' : '' }}>Belum Menikah</option>
+                    <option value="Sudah Menikah" {{ request('status') == 'Sudah Menikah' ? 'selected' : '' }}>Sudah Menikah</option>
+                    <option value="Janda/Duda" {{ request('status') == 'Janda/Duda' ? 'selected' : '' }}>Janda/Duda</option>
+                </select>
+            </div>
+
+            <!-- Gender Filter -->
+            <div>
+                <select 
+                    name="gender" 
+                    class="w-full border border-gray-300 rounded-lg px-3 md:px-4 py-2 md:py-3 text-sm md:text-base focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                    <option value="">Semua</option>
+                    <option value="Laki-laki" {{ request('gender') == 'Laki-laki' ? 'selected' : '' }}>Laki-laki</option>
+                    <option value="Perempuan" {{ request('gender') == 'Perempuan' ? 'selected' : '' }}>Perempuan</option>
+                </select>
+            </div>
         </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row justify-center items-center gap-3 pt-2">
+            <button 
+                type="submit" 
+                class="bg-blue-600 hover:bg-blue-700 text-white px-5 md:px-6 py-2.5 rounded-lg transition text-sm md:text-base flex items-center justify-center w-full sm:w-auto"
+            >
+                <i class="fas fa-search mr-2"></i>Cari
+            </button>
+
+            @if(request()->hasAny(['search', 'family_id', 'status', 'gender']))
+                <a 
+                    href="{{ route('members.index') }}" 
+                    class="bg-gray-500 hover:bg-gray-600 text-white px-5 md:px-6 py-2.5 rounded-lg transition text-sm md:text-base flex items-center justify-center w-full sm:w-auto"
+                >
+                    <i class="fas fa-times mr-2"></i>Reset Filter
+                </a>
+            @endif
+        </div>
+    </form>
+</div>
+
 
         <!-- Members Table/Cards -->
         <div class="bg-white rounded-lg shadow-sm overflow-hidden mx-auto max-w-full">

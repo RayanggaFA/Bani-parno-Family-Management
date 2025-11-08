@@ -59,7 +59,7 @@ class MemberFormController extends Controller
         
         $validator = Validator::make($request->all(), [
             'full_name' => 'required|string|max:255',
-            'nickname' => 'nullable|string|max:100',
+            'nickname' => 'nullable|string|min:3|max:20',
             'gender' => 'required|in:Laki-laki,Perempuan',
             'birth_date' => 'nullable|date|before:today',
             'birth_place' => 'nullable|string|max:255',
@@ -78,6 +78,8 @@ class MemberFormController extends Controller
             'name.required' => 'Nama anggota keluarga wajib diisi.',
             'gender.required' => 'Jenis kelamin wajib dipilih.',
             'gender.in' => 'Jenis kelamin harus male atau female.',
+            'nickname.min' => 'Nama panggilan minimal harus 3 karakter.',
+            'nickname.max' => 'Nama panggilan maksimal 20 karakter.',
             'birth_date.before' => 'Tanggal lahir harus sebelum hari ini.',
             'marital_status.required' => 'Status pernikahan wajib dipilih.',
             'parent_id.exists' => 'Orang tua yang dipilih tidak valid.',
@@ -125,10 +127,8 @@ class MemberFormController extends Controller
                 'ktp_address' => $request->ktp_address,
                 'current_address' => $request->current_address,
                 'generation' => $request->generation,
-                'profile_photo' => $profilePhotoPath, // TAMBAHAN: Save foto
+                'profile_photo' => $profilePhotoPath, 
             ]);
-
-            // SIMPLIFIED: Activity log tanpa user_agent/ip_address (sesuai diskusi sebelumnya)
             try {
                 ActivityLog::create([
                     'family_id' => $family->id,
@@ -202,7 +202,7 @@ class MemberFormController extends Controller
 
         $validator = Validator::make($request->all(), [
     'full_name' => 'required|string|max:255',
-    'nickname' => 'nullable|string|max:100',
+    'nickname' => 'nullable|min:3|max:20',
     'gender' => 'required|in:Laki-laki,Perempuan',
     'birth_date' => 'nullable|date|before:today',
     'birth_place' => 'nullable|string|max:255',

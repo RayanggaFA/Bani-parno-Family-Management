@@ -60,7 +60,7 @@
             
             <!-- ✅ Right Side: Action Buttons (if admin) -->
             @auth('family')
-                @if($isAdmin)
+                
                     <div class="flex flex-col gap-3 min-w-[200px]">
                         <a href="{{ route('families.edit', $family) }}" 
                            class="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-medium py-3 px-6 rounded-lg transition flex items-center justify-center border border-white/30">
@@ -81,7 +81,7 @@
                             </a>
                         @endif
                     </div>
-                @endif
+                
             @endauth
         </div>
         
@@ -273,20 +273,16 @@
                 <p class="text-gray-600 mb-8 max-w-md mx-auto">
                     Keluarga ini belum memiliki anggota yang terdaftar. 
                     @auth('family')
-                        @if($isAdmin)
                             Mulai tambahkan anggota keluarga Anda sekarang untuk membangun silsilah.
-                        @endif
                     @endauth
                 </p>
                 
                 @auth('family')
-                    @if($isAdmin)
                         <a href="{{ route('members.create') }}" 
                            class="bg-green-600 hover:bg-green-700 text-white py-4 px-8 rounded-xl transition font-medium shadow-lg transform hover:scale-105">
                             <i class="fas fa-user-plus mr-2"></i>
                             Tambah Anggota Pertama
                         </a>
-                    @endif
                 @endauth
             </div>
         @endif
